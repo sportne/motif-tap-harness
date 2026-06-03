@@ -1,12 +1,23 @@
 PYTHON ?= python3
 
-.PHONY: test install-dev build-hook clean
+.PHONY: test lint format format-check install-dev build-hook clean
 
 install-dev:
 	$(PYTHON) -m pip install -e '.[dev]'
 
 test:
 	$(PYTHON) -m pytest
+
+lint:
+	$(PYTHON) -m ruff check .
+
+format:
+	$(PYTHON) -m ruff check --select I --fix .
+	$(PYTHON) -m ruff format .
+
+format-check:
+	$(PYTHON) -m ruff check .
+	$(PYTHON) -m ruff format --check .
 
 build-hook:
 	$(MAKE) -C c

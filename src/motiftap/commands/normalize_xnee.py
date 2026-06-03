@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 from motiftap.events import write_normalized_events
 from motiftap.xnee_normalize import normalize_file
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Normalize cnee/Xnee output to Motif Tap JSONL events.")
+    parser = argparse.ArgumentParser(
+        description="Normalize cnee/Xnee output to Motif Tap JSONL events."
+    )
     parser.add_argument("input", help="Input cnee human output or already-normalized JSONL")
     parser.add_argument("--out", required=True, help="Output events.jsonl")
     parser.add_argument("--input-format", choices=["auto", "jsonl", "xnee-human"], default="auto")

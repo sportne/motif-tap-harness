@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import json
 from bisect import bisect_right
 from dataclasses import dataclass
 from pathlib import Path
-import json
 from typing import Any
 
 

@@ -21,5 +21,7 @@ def test_hit_test_prefers_deepest_widget():
 
 
 def test_hit_test_returns_none_when_no_match():
-    timeline = WidgetTimeline([Snapshot(t=1.0, widgets=[Widget("app", "app", "Shell", 0, 0, 10, 10, 0)])])
+    timeline = WidgetTimeline(
+        [Snapshot(t=1.0, widgets=[Widget("app", "app", "Shell", 0, 0, 10, 10, 0)])]
+    )
     assert timeline.hit_test(1.0, 100, 100) is None

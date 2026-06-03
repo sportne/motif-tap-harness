@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
 import json
 import re
+from dataclasses import dataclass
+from pathlib import Path
 
 from motiftap.events import Action, coalesce_events, read_normalized_events
 from motiftap.widget_map import Widget, WidgetTimeline
-
 
 ACTIVATABLE_CLASS_HINTS = (
     "PushButton",
@@ -84,11 +83,21 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
 
     if action.op == "press":
         key = str(action.data["key"])
-        return [RenderedLine(code=f"        app.press({key!r})", confidence="HIGH", reason="keyboard action")]
+        return [
+            RenderedLine(
+                code=f"        app.press({key!r})", confidence="HIGH", reason="keyboard action"
+            )
+        ]
 
     if action.op == "type_text":
         text = str(action.data["text"])
-        return [RenderedLine(code=f"        app.type_text({text!r})", confidence="HIGH", reason="coalesced text input")]
+        return [
+            RenderedLine(
+                code=f"        app.type_text({text!r})",
+                confidence="HIGH",
+                reason="coalesced text input",
+            )
+        ]
 
     if action.op == "drag_or_raw_mouse":
         return [
@@ -133,7 +142,6 @@ def generate_test(
     counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0, "TODO": 0}
 
     lines: list[str] = [
-        "from pathlib import Path",
         "from motiftap.harness import MotifApp",
         "",
         "",
@@ -164,7 +172,9 @@ def generate_test(
     return TranslationResult(code="\n".join(lines) + "\n", counts=counts)
 
 
-def translate_recording(recording_dir: str | Path, *, app_argv: list[str] | None, test_name: str | None = None) -> TranslationResult:
+def translate_recording(
+    recording_dir: str | Path, *, app_argv: list[str] | None, test_name: str | None = None
+) -> TranslationResult:
     directory = Path(recording_dir)
     meta_file = directory / "meta.json"
     meta = json.loads(meta_file.read_text(encoding="utf-8"))

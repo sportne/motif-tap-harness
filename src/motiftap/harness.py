@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
 import os
 import shutil
 import subprocess
 import tempfile
 import time
+from pathlib import Path
 from typing import Any
 
 
@@ -38,11 +38,20 @@ class MotifApp:
         self.timeout = timeout
         self.keep_artifacts = keep_artifacts
 
-        self._tmp = tempfile.TemporaryDirectory(prefix="motif-test-")
-        self.session_dir = Path(self._tmp.name)
+        self._tmp: tempfile.TemporaryDirectory[str] | None = None
+        if keep_artifacts:
+            self.session_dir = Path(tempfile.mkdtemp(prefix="motif-test-"))
+        else:
+            self._tmp = tempfile.TemporaryDirectory(prefix="motif-test-")
+            self.session_dir = Path(self._tmp.name)
+
         self.state_file = self.session_dir / "latest-state.json"
         self.widget_log = self.session_dir / "widgets.jsonl"
+        self.stdout_file = self.session_dir / "stdout.log"
+        self.stderr_file = self.session_dir / "stderr.log"
         self.proc: subprocess.Popen[str] | None = None
+        self._stdout_handle: Any | None = None
+        self._stderr_handle: Any | None = None
 
     def __enter__(self) -> "MotifApp":
         self.start()
@@ -52,7 +61,7 @@ class MotifApp:
         if exc_type is not None:
             self.capture_diagnostics("failure")
         self.stop()
-        if not self.keep_artifacts:
+        if self._tmp is not None:
             self._tmp.cleanup()
 
     def start(self) -> None:
@@ -64,16 +73,25 @@ class MotifApp:
 
         if self.tap_so:
             existing_preload = env.get("LD_PRELOAD", "")
-            env["LD_PRELOAD"] = f"{self.tap_so}:{existing_preload}" if existing_preload else self.tap_so
+            env["LD_PRELOAD"] = (
+                f"{self.tap_so}:{existing_preload}" if existing_preload else self.tap_so
+            )
 
-        self.proc = subprocess.Popen(
-            self.argv,
-            env=env,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        self._wait_for_state_file()
+        self._stdout_handle = self.stdout_file.open("w", encoding="utf-8")
+        self._stderr_handle = self.stderr_file.open("w", encoding="utf-8")
+
+        try:
+            self.proc = subprocess.Popen(
+                self.argv,
+                env=env,
+                text=True,
+                stdout=self._stdout_handle,
+                stderr=self._stderr_handle,
+            )
+            self._wait_for_state_file()
+        except Exception:
+            self.stop()
+            raise
 
     def stop(self) -> None:
         if self.proc and self.proc.poll() is None:
@@ -83,6 +101,13 @@ class MotifApp:
             except subprocess.TimeoutExpired:
                 self.proc.kill()
                 self.proc.wait(timeout=3)
+
+        if self._stdout_handle is not None:
+            self._stdout_handle.close()
+            self._stdout_handle = None
+        if self._stderr_handle is not None:
+            self._stderr_handle.close()
+            self._stderr_handle = None
 
     def _require_tool(self, name: str) -> None:
         if shutil.which(name) is None:
@@ -196,6 +221,11 @@ class MotifApp:
         base = self.session_dir / label
         base.mkdir(parents=True, exist_ok=True)
 
+        if self._stdout_handle is not None:
+            self._stdout_handle.flush()
+        if self._stderr_handle is not None:
+            self._stderr_handle.flush()
+
         if self.state_file.exists():
             (base / "latest-state.json").write_text(
                 self.state_file.read_text(encoding="utf-8"), encoding="utf-8"
@@ -203,6 +233,14 @@ class MotifApp:
         if self.widget_log.exists():
             (base / "widgets.jsonl").write_text(
                 self.widget_log.read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        if self.stdout_file.exists():
+            (base / "stdout.log").write_text(
+                self.stdout_file.read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        if self.stderr_file.exists():
+            (base / "stderr.log").write_text(
+                self.stderr_file.read_text(encoding="utf-8"), encoding="utf-8"
             )
 
         for command, out_name in [
@@ -212,7 +250,9 @@ class MotifApp:
             if shutil.which(command[0]) is None:
                 continue
             with (base / out_name).open("w", encoding="utf-8") as out:
-                subprocess.run(command, text=True, stdout=out, stderr=subprocess.STDOUT, check=False)
+                subprocess.run(
+                    command, text=True, stdout=out, stderr=subprocess.STDOUT, check=False
+                )
 
         if shutil.which("xwd") is not None:
             subprocess.run(["xwd", "-root", "-out", str(base / "screen.xwd")], check=False)

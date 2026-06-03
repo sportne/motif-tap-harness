@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
 import argparse
 import json
 import os
 import shutil
 import signal
 import subprocess
-import sys
 import time
+from pathlib import Path
 
 
 def _split_app_args(raw: list[str]) -> list[str]:
@@ -22,11 +21,19 @@ def main(argv: list[str] | None = None) -> int:
         description="Record a Motif/Xt workflow with cnee while the Xt tap hook logs widget snapshots."
     )
     parser.add_argument("--name", required=True, help="Recording name, e.g. open_valid_file")
-    parser.add_argument("--output-dir", default="recordings", help="Parent directory for recordings")
+    parser.add_argument(
+        "--output-dir", default="recordings", help="Parent directory for recordings"
+    )
     parser.add_argument("--tap-so", default="./c/libxttap.so", help="Path to libxttap.so")
     parser.add_argument("--cnee", default="cnee", help="cnee executable")
-    parser.add_argument("--no-cnee", action="store_true", help="Launch the app and hook only; useful for hook debugging")
-    parser.add_argument("--app", nargs=argparse.REMAINDER, required=True, help="Application command after --")
+    parser.add_argument(
+        "--no-cnee",
+        action="store_true",
+        help="Launch the app and hook only; useful for hook debugging",
+    )
+    parser.add_argument(
+        "--app", nargs=argparse.REMAINDER, required=True, help="Application command after --"
+    )
     args = parser.parse_args(argv)
 
     app_argv = _split_app_args(args.app)
@@ -110,7 +117,11 @@ def main(argv: list[str] | None = None) -> int:
                 app.kill()
 
     print(f"Saved recording in {out_dir}")
-    print("Next: motif-normalize-xnee {}/xnee-human.txt --out {}/events.jsonl".format(out_dir, out_dir))
+    print(
+        "Next: motif-normalize-xnee {}/xnee-human.txt --out {}/events.jsonl".format(
+            out_dir, out_dir
+        )
+    )
     return 0
 
 

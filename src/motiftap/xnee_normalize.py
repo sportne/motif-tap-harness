@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
 import re
+from pathlib import Path
 from typing import Iterable
 
 from motiftap.events import RawEvent
-
 
 # Xnee/cnee human output varies by version and options. These patterns are
 # deliberately permissive starter rules. The normalized JSONL format is the
