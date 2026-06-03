@@ -1,6 +1,6 @@
 # Task: Container Live Loop Base
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -33,13 +33,13 @@ of environment that will later run the live GUI demo.
 
 ## Acceptance Criteria
 
-- [ ] `containers/live-loop/Dockerfile` builds with Docker or Podman.
-- [ ] The image installs `libmotif-dev`, `libxt-dev`, `libx11-dev`, `xvfb`,
+- [x] `containers/live-loop/Dockerfile` builds with Docker or Podman.
+- [x] The image installs `libmotif-dev`, `libxt-dev`, `libx11-dev`, `xvfb`,
       `openbox`, `xdotool`, `xnee`, `gcc`, `make`, and Python tooling.
-- [ ] The image can install the project in editable dev mode.
-- [ ] The image can build `c/libxttap.so`.
-- [ ] The image can run the repository's unit tests and Ruff checks.
-- [ ] The task documents the exact build command for Docker and Podman.
+- [x] The image can install the project in editable dev mode.
+- [x] The image can build `c/libxttap.so`.
+- [x] The image can run the repository's unit tests and Ruff checks.
+- [x] The task documents the exact build command for Docker and Podman.
 
 ## Validation Required
 
@@ -52,10 +52,14 @@ docker run --rm motif-tap-live-loop make lint
 docker run --rm motif-tap-live-loop make format-check
 docker run --rm motif-tap-live-loop make test
 docker run --rm motif-tap-live-loop make -C c
+
+podman run --rm motif-tap-live-loop make lint
+podman run --rm motif-tap-live-loop make format-check
+podman run --rm motif-tap-live-loop make test
+podman run --rm motif-tap-live-loop make -C c
 ```
 
-If Podman is the available runtime, run the equivalent `podman run --rm`
-commands.
+Run either the Docker or Podman command set, depending on the available runtime.
 
 ## Notes
 
@@ -65,4 +69,3 @@ commands.
   development image.
 - Do not start Xvfb in the Dockerfile build stage; runtime scripts should start
   Xvfb when needed.
-
