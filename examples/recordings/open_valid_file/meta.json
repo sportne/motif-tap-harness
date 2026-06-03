@@ -1,0 +1,9 @@
+{
+  "record_start_monotonic": 1000.0,
+  "app": [
+    "./examples/fake_motif_app",
+    "--test-mode"
+  ],
+  "created_unix_time": 1770000000.0,
+  "tap_so": "./c/libxttap.so"
+}

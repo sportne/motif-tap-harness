@@ -1,0 +1,7 @@
+{"t": 0.2, "kind": "button", "phase": "press", "button": 1, "x": 110, "y": 50}
+{"t": 0.26, "kind": "button", "phase": "release", "button": 1, "x": 110, "y": 50}
+{"t": 0.5, "kind": "key", "phase": "press", "key": "slash"}
+{"t": 0.55, "kind": "key", "phase": "press", "key": "t"}
+{"t": 0.6, "kind": "key", "phase": "press", "key": "m"}
+{"t": 0.65, "kind": "key", "phase": "press", "key": "p"}
+{"t": 1.0, "kind": "key", "phase": "press", "key": "Return"}

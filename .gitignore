@@ -1,0 +1,54 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Python environments and packaging output
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+build/
+dist/
+wheelhouse/
+
+# C build products
+c/libxttap.so
+c/*.o
+c/*.a
+c/*.so
+
+# Local Motif Tap recording and replay artifacts
+/recordings/
+/motif-test-*/
+/tmp/
+*.xns
+*.xwd
+screen.xwd
+/latest-state.json
+/widgets.jsonl
+/events.jsonl
+/xwininfo-tree.txt
+/visible-windows.txt
+
+# Logs and runtime dumps
+*.log
+*.pid
+core
+core.*
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

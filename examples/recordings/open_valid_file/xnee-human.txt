@@ -1,0 +1,8 @@
+# Example only. Real cnee human output varies by version.
+time=0.200 ButtonPress button=1 x=110 y=50
+time=0.260 ButtonRelease button=1 x=110 y=50
+time=0.500 KeyPress key=slash
+time=0.550 KeyPress key=t
+time=0.600 KeyPress key=m
+time=0.650 KeyPress key=p
+time=1.000 KeyPress key=Return
