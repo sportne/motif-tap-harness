@@ -1,6 +1,6 @@
 # Task: Container Replay Test
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0005
 
@@ -32,12 +32,12 @@ Motif application under X11.
 
 ## Acceptance Criteria
 
-- [ ] A single command starts Xvfb, runs the replay pytest, and shuts down cleanly.
-- [ ] The pytest launches the calculator through `MotifApp`.
-- [ ] The replay clicks live widget paths, not stale recording coordinates.
-- [ ] The test evaluates at least `7 * 6 =`.
-- [ ] The test asserts `/tmp/motif-calc/result.txt` contains `42`.
-- [ ] On failure, artifacts include `latest-state.json`, `widgets.jsonl`,
+- [x] A single command starts Xvfb, runs the replay pytest, and shuts down cleanly.
+- [x] The pytest launches the calculator through `MotifApp`.
+- [x] The replay clicks live widget paths, not stale recording coordinates.
+- [x] The test evaluates at least `7 * 6 =`.
+- [x] The test asserts `/tmp/motif-calc/result.txt` contains `42`.
+- [x] On failure, artifacts include `latest-state.json`, `widgets.jsonl`,
       stdout/stderr logs, window info where available, and a screen dump where
       available.
 
@@ -56,4 +56,3 @@ replay, or assertion fails.
   but keep the smaller scripts useful for debugging.
 - If the first replay is flaky, capture artifacts before changing timing or
   synchronization behavior.
-

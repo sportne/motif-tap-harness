@@ -29,6 +29,8 @@ if assertion not in text:
     marker = "        # assert Path('/tmp/output.dat').exists()\n"
     text = text.replace(marker, marker + assertion + "\n")
 
+text = text.replace("]) as app:", "], keep_artifacts=True) as app:")
+
 path.write_text(text, encoding="utf-8")
 PY
 
@@ -40,6 +42,10 @@ if ! grep -q 'motif-calc.calculatorForm.keypad.digit7' "${OUTPUT_TEST}"; then
 fi
 if ! grep -q '/tmp/motif-calc/result.txt' "${OUTPUT_TEST}"; then
   echo "Generated test is missing the calculator result assertion." >&2
+  exit 1
+fi
+if ! grep -q 'keep_artifacts=True' "${OUTPUT_TEST}"; then
+  echo "Generated test does not keep replay diagnostics on failure." >&2
   exit 1
 fi
 
