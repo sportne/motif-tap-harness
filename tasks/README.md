@@ -1,7 +1,11 @@
-# Live Loop Task Index
+# Project Task Index
 
-This directory tracks the work needed to prove Motif Tap Harness against a real
-Motif application under X11. The goal is a containerized live loop that can:
+This directory tracks lightweight task specs for Motif Tap Harness. The first
+set of tasks proved the harness against a real Motif application under X11. The
+current task set focuses on moving the project beyond alpha quality while
+keeping it minimal and simple.
+
+The completed live-loop proof can:
 
 1. Build the Xt tap hook.
 2. Build and launch a small Motif calculator.
@@ -10,9 +14,8 @@ Motif application under X11. The goal is a containerized live loop that can:
 5. Replay the generated pytest through `MotifApp`.
 6. Assert a real calculator result.
 
-These files are lightweight task specs, not implementation notes after the
-fact. Keep each task independently understandable and update its status as work
-progresses.
+Task files are lightweight specs, not implementation notes after the fact. Keep
+each task independently understandable and update its status as work progresses.
 
 ## Status Vocabulary
 
@@ -39,6 +42,13 @@ progresses.
 | [0005](0005-translation-and-generated-test.md) | AFK | Done | 0004 | Translate the recording into a pytest. |
 | [0006](0006-container-replay-test.md) | AFK | Done | 0005 | Replay the generated test in the container. |
 | [0007](0007-demo-docs-and-ci-path.md) | AFK | Done | 0006 | Document the full demo and optional CI path. |
+| [0008](0008-reproducible-quality-baseline.md) | AFK | Proposed | None | Make the fast quality baseline reproducible locally and in CI. |
+| [0009](0009-recorder-output-validation.md) | AFK | Proposed | None | Validate recorder outputs and subprocess failures before reporting success. |
+| [0010](0010-replay-diagnostics-and-waits.md) | AFK | Proposed | None | Improve replay diagnostics and add a small condition-wait helper. |
+| [0011](0011-translation-review-report.md) | AFK | Proposed | None | Add translation reports and a TODO gate for generated tests. |
+| [0012](0012-xt-hook-path-stability.md) | AFK | Proposed | None | Stabilize Xt hook widget paths and snapshot behavior. |
+| [0013](0013-event-normalization-hardening.md) | AFK | Proposed | None | Expand practical event normalization coverage while preserving TODO fallbacks. |
+| [0014](0014-automated-live-loop-gate.md) | AFK | Proposed | 0008 | Run the live-loop proof automatically for relevant changes. |
 
 ## Workflow
 
@@ -49,6 +59,5 @@ progresses.
 4. Run every command listed in `Validation Required`.
 5. Mark the task `Done` only after all acceptance criteria are met.
 
-The live-loop proof is complete only when task 0006 passes: the container
-records, normalizes, translates, replays, and asserts a calculator result under
-Xvfb.
+The live-loop proof is complete because task 0006 passes: the container records,
+normalizes, translates, replays, and asserts a calculator result under Xvfb.
