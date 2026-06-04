@@ -18,6 +18,14 @@ class MissingTool(RuntimeError):
     """Raised when an external command such as xdotool is unavailable."""
 
 
+class MissingDisplay(RuntimeError):
+    """Raised when no X11 DISPLAY is configured for replay."""
+
+
+class XdotoolError(RuntimeError):
+    """Raised when xdotool fails to send or inspect X11 input."""
+
+
 class MotifApp:
     """Runtime harness used by generated tests.
 
@@ -65,6 +73,7 @@ class MotifApp:
             self._tmp.cleanup()
 
     def start(self) -> None:
+        self._require_display()
         self._require_tool("xdotool")
 
         env = os.environ.copy()
@@ -113,14 +122,26 @@ class MotifApp:
         if shutil.which(name) is None:
             raise MissingTool(f"Required command not found in PATH: {name}")
 
+    def _require_display(self) -> None:
+        if not os.environ.get("DISPLAY"):
+            raise MissingDisplay("DISPLAY is not set; MotifApp replay requires an X11 display")
+
     def _xdotool(self, *args: object) -> str:
+        command = ["xdotool", *map(str, args)]
         result = subprocess.run(
-            ["xdotool", *map(str, args)],
-            check=True,
+            command,
+            check=False,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        if result.returncode != 0:
+            self.capture_diagnostics("xdotool_failed")
+            raise XdotoolError(
+                "xdotool failed: "
+                f"command={command!r} returncode={result.returncode} "
+                f"stdout={result.stdout!r} stderr={result.stderr!r}"
+            )
         return result.stdout
 
     def _wait_for_state_file(self) -> None:
@@ -198,6 +219,23 @@ class MotifApp:
 
     def wait_for_idle(self, seconds: float = 0.2) -> None:
         time.sleep(seconds)
+
+    def wait_until(self, description: str, predicate, timeout: float | None = None) -> object:
+        deadline = time.monotonic() + (self.timeout if timeout is None else timeout)
+        last_error: Exception | None = None
+
+        while time.monotonic() < deadline:
+            try:
+                value = predicate()
+                if value:
+                    return value
+            except Exception as exc:
+                last_error = exc
+            time.sleep(0.05)
+
+        self.capture_diagnostics("wait_until_failed")
+        detail = f": {last_error}" if last_error else ""
+        raise TimeoutError(f"Timed out waiting for {description}{detail}")
 
     def wait_for_window(self, title: str, timeout: float | None = None) -> None:
         deadline = time.monotonic() + (timeout or self.timeout)

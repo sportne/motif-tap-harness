@@ -146,6 +146,22 @@ Use this when the widget path is unavailable or less stable than the window titl
 
 ---
 
+## `app.wait_until(description, predicate)`
+
+Waits for an application-specific condition.
+
+```python
+app.wait_until(
+    "output report",
+    lambda: Path("/tmp/report.txt").exists(),
+)
+```
+
+Use this for simple file, log, or domain-state conditions that are not visible
+as Motif widgets.
+
+---
+
 ## `app.capture_diagnostics(label)`
 
 Captures debugging artifacts.

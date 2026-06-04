@@ -1,6 +1,6 @@
 # Task: Replay Diagnostics And Waits
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -30,14 +30,14 @@ small condition-based wait helper for application-specific assertions.
 
 ## Acceptance Criteria
 
-- [ ] Missing `DISPLAY` fails with a clear `MotifApp` startup error.
-- [ ] Failed `xdotool` calls include the command, return code, stdout, and
+- [x] Missing `DISPLAY` fails with a clear `MotifApp` startup error.
+- [x] Failed `xdotool` calls include the command, return code, stdout, and
       stderr in the raised exception.
-- [ ] `click`, `click_relative`, `click_root`, `press`, and `type_text` capture
+- [x] `click`, `click_relative`, `click_root`, `press`, and `type_text` capture
       diagnostics when their underlying input command fails.
-- [ ] `MotifApp.wait_until(description, predicate, timeout=None)` is available
+- [x] `MotifApp.wait_until(description, predicate, timeout=None)` is available
       for simple condition-based waits.
-- [ ] Tests cover missing display validation, wrapped `xdotool` failure output,
+- [x] Tests cover missing display validation, wrapped `xdotool` failure output,
       diagnostics capture on input failure, and `wait_until` success/timeout.
 
 ## Validation Required
