@@ -12,7 +12,6 @@ A recording directory should contain:
 meta.json
 widgets.jsonl
 latest-state.json
-xnee.xns
 xnee-human.txt
 events.jsonl
 ```
@@ -29,7 +28,6 @@ Optional but useful:
 
 ```text
 latest-state.json
-xnee.xns
 xnee-human.txt
 screenshots
 logs

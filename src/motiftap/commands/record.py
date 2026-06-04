@@ -27,6 +27,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tap-so", default="./c/libxttap.so", help="Path to libxttap.so")
     parser.add_argument("--cnee", default="cnee", help="cnee executable")
     parser.add_argument(
+        "--seconds",
+        type=float,
+        default=None,
+        help="Record for this many seconds instead of waiting for Enter",
+    )
+    parser.add_argument(
         "--no-cnee",
         action="store_true",
         help="Launch the app and hook only; useful for hook debugging",
@@ -45,8 +51,8 @@ def main(argv: list[str] | None = None) -> int:
 
     state_file = out_dir / "latest-state.json"
     widget_log = out_dir / "widgets.jsonl"
-    xnee_file = out_dir / "xnee.xns"
     xnee_human = out_dir / "xnee-human.txt"
+    xnee_log = out_dir / "xnee.log"
     meta_file = out_dir / "meta.json"
 
     env = os.environ.copy()
@@ -78,29 +84,39 @@ def main(argv: list[str] | None = None) -> int:
             app.terminate()
             raise SystemExit(f"cnee executable not found: {args.cnee}")
 
-        # cnee flags vary slightly by version. This is a starter command that
-        # records mouse+keyboard input and requests human output for normalization.
-        xnee = subprocess.Popen(
-            [
-                args.cnee,
-                "--record",
-                "--mouse",
-                "--keyboard",
-                "--human-printout",
-                "--out-file",
-                str(xnee_file),
-                "--err-file",
-                str(xnee_human),
-                "--verbose",
-            ]
-        )
+        # cnee flags vary slightly by version. This command records mouse and
+        # keyboard input as human-readable output for normalization.
+        cnee_cmd = [
+            args.cnee,
+            "--record",
+            "--mouse",
+            "--keyboard",
+            "--human-printout",
+            "--out-file",
+            str(xnee_human),
+            "--err-file",
+            str(xnee_log),
+            "--verbose",
+        ]
+        if args.seconds is not None:
+            cnee_cmd.extend(["--seconds-to-record", str(max(1, int(args.seconds)))])
+        xnee = subprocess.Popen(cnee_cmd)
 
     print(f"Recording: {args.name}")
     print(f"Output:    {out_dir}")
-    print("Perform the workflow in the application, then press Enter here to stop.")
+    if args.seconds is None:
+        print("Perform the workflow in the application, then press Enter here to stop.")
+    else:
+        print(f"Recording will stop automatically after {args.seconds:.2f} seconds.")
 
     try:
-        input()
+        if args.seconds is None:
+            input()
+        else:
+            if xnee is not None:
+                xnee.wait(timeout=args.seconds + 5)
+            else:
+                time.sleep(args.seconds)
     finally:
         if xnee and xnee.poll() is None:
             xnee.send_signal(signal.SIGINT)

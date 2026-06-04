@@ -180,7 +180,6 @@ recordings/open_valid_file/
   meta.json
   latest-state.json
   widgets.jsonl
-  xnee.xns
   xnee-human.txt
 ```
 

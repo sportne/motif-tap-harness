@@ -17,6 +17,11 @@ _TIME_PATTERNS = [
 
 _BUTTON_PATTERNS = [
     re.compile(
+        r"Event=(?P<phase>ButtonPress|ButtonRelease).*?"
+        r"rootX=(?P<x>-?\d+)\s+rootY=(?P<y>-?\d+)",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"(?P<phase>ButtonPress|ButtonRelease|button\s+press|button\s+release).*?"
         r"(?:button|btn)\s*[=: ]\s*(?P<button>\d+).*?"
         r"x\s*[=: ]\s*(?P<x>-?\d+).*?y\s*[=: ]\s*(?P<y>-?\d+)",
@@ -85,7 +90,7 @@ def normalize_xnee_human_lines(lines: Iterable[str]) -> list[RawEvent]:
                         t=t,
                         kind="button",
                         phase=_normal_phase(match.group("phase")),
-                        button=int(match.group("button")),
+                        button=int(match.groupdict().get("button") or 1),
                         x=int(match.group("x")),
                         y=int(match.group("y")),
                     )

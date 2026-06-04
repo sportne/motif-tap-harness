@@ -1,6 +1,6 @@
 # Task: Automated Xnee Recording
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0003
 
@@ -30,16 +30,16 @@ same recording pipeline.
 
 ## Acceptance Criteria
 
-- [ ] A script starts Xvfb, starts a window manager, starts `motif-record`, and
+- [x] A script starts Xvfb, starts a window manager, starts `motif-record`, and
       launches the calculator with the Xt hook.
-- [ ] The script drives a deterministic expression with `xdotool`; use
+- [x] The script drives a deterministic expression with `xdotool`; use
       `7 * 6 =` as the default workflow.
-- [ ] The script stops recording without requiring human keyboard input.
-- [ ] The recording directory contains `meta.json`, `xnee-human.txt`,
+- [x] The script stops recording without requiring human keyboard input.
+- [x] The recording directory contains `meta.json`, `xnee-human.txt`,
       `events.jsonl`, `widgets.jsonl`, and `latest-state.json`.
-- [ ] Normalization reports non-zero button events and no obvious parser
+- [x] Normalization reports non-zero button events and no obvious parser
       failure.
-- [ ] The script prints the recording directory path and confidence-relevant
+- [x] The script prints the recording directory path and confidence-relevant
       event counts.
 
 ## Validation Required
@@ -65,4 +65,3 @@ test -s "$RECORDING_DIR/latest-state.json"
   smallest CLI extension needed and test it directly.
 - Keep timing waits condition-based where possible; use short sleeps only where
   X11 tooling needs startup settling.
-
