@@ -1,6 +1,6 @@
 # Task: Recorder Output Validation
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -27,15 +27,15 @@ or translation.
 
 ## Acceptance Criteria
 
-- [ ] `motif-record` validates that `meta.json`, `latest-state.json`, and
+- [x] `motif-record` validates that `meta.json`, `latest-state.json`, and
       `widgets.jsonl` exist and are non-empty before reporting success.
-- [ ] When `cnee` is used, `motif-record` validates that `xnee-human.txt` exists
+- [x] When `cnee` is used, `motif-record` validates that `xnee-human.txt` exists
       and is non-empty.
-- [ ] Non-zero app or `cnee` exits are reported with command context and a
+- [x] Non-zero app or `cnee` exits are reported with command context and a
       useful next step.
-- [ ] `--no-cnee` mode still supports hook debugging and validates only the
+- [x] `--no-cnee` mode still supports hook debugging and validates only the
       hook-related outputs.
-- [ ] Focused tests cover successful validation, missing hook state, empty Xnee
+- [x] Focused tests cover successful validation, missing hook state, empty Xnee
       output, and failed subprocess exit.
 
 ## Validation Required

@@ -10,10 +10,60 @@ import time
 from pathlib import Path
 
 
+class RecordingValidationError(RuntimeError):
+    """Raised when a recording command did not produce usable outputs."""
+
+
 def _split_app_args(raw: list[str]) -> list[str]:
     if raw and raw[0] == "--":
         return raw[1:]
     return raw
+
+
+def _require_nonempty_file(path: Path, *, hint: str) -> None:
+    if not path.exists():
+        raise RecordingValidationError(f"Required recording output is missing: {path}. {hint}")
+    if path.stat().st_size <= 0:
+        raise RecordingValidationError(f"Required recording output is empty: {path}. {hint}")
+
+
+def _validate_outputs(
+    *,
+    meta_file: Path,
+    state_file: Path,
+    widget_log: Path,
+    xnee_human: Path,
+    used_cnee: bool,
+) -> None:
+    _require_nonempty_file(meta_file, hint="The recorder could not write metadata.")
+    _require_nonempty_file(
+        state_file,
+        hint="The Xt hook did not write live state; check LD_PRELOAD and MOTIF_TAP_STATE.",
+    )
+    _require_nonempty_file(
+        widget_log,
+        hint="The Xt hook did not write snapshots; check LD_PRELOAD and MOTIF_TAP_LOG.",
+    )
+    if used_cnee:
+        _require_nonempty_file(
+            xnee_human,
+            hint="cnee produced no human-readable events; check xnee.log and X11 input permissions.",
+        )
+
+
+def _unexpected_exit(
+    *,
+    name: str,
+    argv: list[str],
+    returncode: int | None,
+    allow_signal: bool = False,
+) -> str | None:
+    if returncode is None or returncode == 0:
+        return None
+    if allow_signal and returncode < 0:
+        return None
+    command = " ".join(argv)
+    return f"{name} exited with status {returncode}: {command}"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -78,6 +128,10 @@ def main(argv: list[str] | None = None) -> int:
 
     app = subprocess.Popen(app_argv, env=env)
     xnee: subprocess.Popen[bytes] | None = None
+    cnee_cmd: list[str] = []
+    app_exited_before_cleanup = False
+    xnee_exited_before_cleanup = False
+    xnee_cleanup_sent = False
 
     if not args.no_cnee:
         if shutil.which(args.cnee) is None:
@@ -118,7 +172,11 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 time.sleep(args.seconds)
     finally:
+        app_exited_before_cleanup = app.poll() is not None
+        xnee_exited_before_cleanup = xnee.poll() is not None if xnee else False
+
         if xnee and xnee.poll() is None:
+            xnee_cleanup_sent = True
             xnee.send_signal(signal.SIGINT)
             try:
                 xnee.wait(timeout=3)
@@ -131,6 +189,39 @@ def main(argv: list[str] | None = None) -> int:
                 app.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 app.kill()
+
+    failures = []
+    app_exit = _unexpected_exit(
+        name="application",
+        argv=app_argv,
+        returncode=app.returncode if app_exited_before_cleanup else None,
+    )
+    if app_exit:
+        failures.append(app_exit)
+
+    if xnee is not None:
+        xnee_exit = _unexpected_exit(
+            name="cnee",
+            argv=cnee_cmd,
+            returncode=xnee.returncode if xnee_exited_before_cleanup or xnee_cleanup_sent else None,
+            allow_signal=xnee_cleanup_sent,
+        )
+        if xnee_exit:
+            failures.append(f"{xnee_exit}; inspect {xnee_log}")
+
+    try:
+        _validate_outputs(
+            meta_file=meta_file,
+            state_file=state_file,
+            widget_log=widget_log,
+            xnee_human=xnee_human,
+            used_cnee=not args.no_cnee,
+        )
+    except RecordingValidationError as exc:
+        failures.append(str(exc))
+
+    if failures:
+        raise SystemExit("Recording failed validation:\n- " + "\n- ".join(failures))
 
     print(f"Saved recording in {out_dir}")
     print(
