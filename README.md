@@ -344,6 +344,52 @@ The intended next steps are:
 
 ---
 
+## Live-loop demo
+
+The repository includes a containerized live-loop proof using a small real Motif
+calculator fixture. The demo builds the Xt hook and calculator, records a
+scripted `7 * 6 =` workflow with `cnee`, normalizes and translates the
+recording, replays the generated pytest through `MotifApp`, and asserts that
+`/tmp/motif-calc/result.txt` contains `42`.
+
+Build and run with Docker:
+
+```bash
+docker build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
+docker run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+```
+
+Or with Podman:
+
+```bash
+podman build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
+podman run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+```
+
+To preserve artifacts after the container exits, bind mount an artifact
+directory:
+
+```bash
+mkdir -p live-loop-artifacts
+docker run --rm \
+  -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts \
+  -v "$PWD/live-loop-artifacts:/artifacts" \
+  motif-tap-live-loop scripts/live-loop-demo.sh
+```
+
+Fast checks remain separate:
+
+```bash
+make lint
+make format-check
+make test
+make -C c
+```
+
+See [`docs/ci.md`](docs/ci.md) for artifacts, troubleshooting, and CI guidance.
+
+---
+
 ## License
 
 BSD 3-Clause. See [`LICENSE`](LICENSE).

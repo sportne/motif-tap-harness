@@ -38,7 +38,7 @@ progresses.
 | [0004](0004-automated-xnee-recording.md) | AFK | Done | 0003 | Script a deterministic `cnee` recording. |
 | [0005](0005-translation-and-generated-test.md) | AFK | Done | 0004 | Translate the recording into a pytest. |
 | [0006](0006-container-replay-test.md) | AFK | Done | 0005 | Replay the generated test in the container. |
-| [0007](0007-demo-docs-and-ci-path.md) | AFK | Proposed | 0006 | Document the full demo and optional CI path. |
+| [0007](0007-demo-docs-and-ci-path.md) | AFK | Done | 0006 | Document the full demo and optional CI path. |
 
 ## Workflow
 

@@ -1,6 +1,6 @@
 # Task: Demo Docs And CI Path
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0006
 
@@ -28,16 +28,16 @@ contributors without making every quick test run start Xvfb and a Motif app.
 
 ## Acceptance Criteria
 
-- [ ] Documentation shows the full Docker and Podman commands for the live-loop
+- [x] Documentation shows the full Docker and Podman commands for the live-loop
       demo.
-- [ ] Documentation lists expected artifacts and where they are written.
-- [ ] Troubleshooting covers missing Motif packages, Xvfb startup failures,
+- [x] Documentation lists expected artifacts and where they are written.
+- [x] Troubleshooting covers missing Motif packages, Xvfb startup failures,
       `cnee` parser mismatches, hook state missing widgets, and replay timing.
-- [ ] The docs clearly distinguish fast unit checks from the slower live GUI
+- [x] The docs clearly distinguish fast unit checks from the slower live GUI
       proof.
-- [ ] Optional GitHub Actions wiring runs the live-loop job separately from the
+- [x] Optional GitHub Actions wiring runs the live-loop job separately from the
       existing `ci` test job.
-- [ ] Task statuses are updated for completed work.
+- [x] Task statuses are updated for completed work.
 
 ## Validation Required
 
@@ -59,4 +59,3 @@ running the same commands locally in the container.
   `docs/ci.md` or a dedicated live-loop doc.
 - If CI runtime is too slow for every pull request, document manual or scheduled
   invocation first.
-

@@ -23,6 +23,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
+mkdir -p "${BASE_DIR}"
 rm -rf "${REPLAY_DIR}"
 mkdir -p "${REPLAY_DIR}"
 
