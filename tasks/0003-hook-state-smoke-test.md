@@ -1,6 +1,6 @@
 # Task: Hook State Smoke Test
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0001, 0002
 
@@ -27,14 +27,14 @@ the first live check that `LD_PRELOAD=c/libxttap.so` produces usable
 
 ## Acceptance Criteria
 
-- [ ] A repeatable command launches the calculator under Xvfb with
+- [x] A repeatable command launches the calculator under Xvfb with
       `LD_PRELOAD=c/libxttap.so`.
-- [ ] `MOTIF_TAP_STATE` points to a non-empty `latest-state.json`.
-- [ ] `MOTIF_TAP_LOG` points to a non-empty `widgets.jsonl`.
-- [ ] `motif-inspect-state` lists meaningful calculator widget paths.
-- [ ] The state includes digit buttons, operation buttons, equals/clear buttons,
+- [x] `MOTIF_TAP_STATE` points to a non-empty `latest-state.json`.
+- [x] `MOTIF_TAP_LOG` points to a non-empty `widgets.jsonl`.
+- [x] `motif-inspect-state` lists meaningful calculator widget paths.
+- [x] The state includes digit buttons, operation buttons, equals/clear buttons,
       and the display/result widget.
-- [ ] The command exits cleanly and kills the calculator, Xvfb, and window
+- [x] The command exits cleanly and kills the calculator, Xvfb, and window
       manager processes it started.
 
 ## Validation Required
@@ -52,4 +52,3 @@ The script must fail if required calculator widget paths are missing.
 - If the hook misses widgets, record the observed state before deciding whether
   the fix belongs in the calculator naming, hook installation timing, or hook
   traversal.
-
