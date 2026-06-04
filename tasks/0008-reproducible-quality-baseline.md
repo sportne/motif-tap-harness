@@ -1,6 +1,6 @@
 # Task: Reproducible Quality Baseline
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -29,14 +29,14 @@ unit tests, and the Xt hook build.
 
 ## Acceptance Criteria
 
-- [ ] A single fast command, such as `make check`, runs lint, format-check,
+- [x] A single fast command, such as `make check`, runs lint, format-check,
       unit tests, and the C hook build.
-- [ ] A local dependency check, such as `make doctor`, reports missing Python
+- [x] A local dependency check, such as `make doctor`, reports missing Python
       dev tools, compiler/X11 headers, and common GUI tools with actionable
       messages.
-- [ ] GitHub Actions fast CI runs lint, format-check, unit tests, and the C hook
+- [x] GitHub Actions fast CI runs lint, format-check, unit tests, and the C hook
       build.
-- [ ] Documentation identifies the intended local setup command sequence and
+- [x] Documentation identifies the intended local setup command sequence and
       explains the difference between fast checks and the live-loop proof.
 
 ## Validation Required

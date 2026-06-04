@@ -9,6 +9,16 @@ Motif GUI tests need a predictable X11 environment.
 The default fast checks should stay small and deterministic:
 
 ```bash
+make doctor
+make check
+```
+
+`make doctor` verifies the local development prerequisites and reports optional
+GUI/live-loop tools separately from required fast-check dependencies.
+
+`make check` runs:
+
+```bash
 make lint
 make format-check
 make test

@@ -39,6 +39,13 @@ make test
 make -C c
 ```
 
+Or run the full fast baseline:
+
+```bash
+make doctor
+make check
+```
+
 The C hook build produces `c/libxttap.so`.
 
 ## CLI Commands
