@@ -33,7 +33,7 @@ progresses.
 | Task | Type | Status | Depends on | Summary |
 | --- | --- | --- | --- | --- |
 | [0001](0001-container-live-loop-base.md) | AFK | Done | None | Add the container base for live-loop work. |
-| [0002](0002-motif-calculator-app.md) | AFK | Proposed | 0001 | Add a real Motif calculator fixture app. |
+| [0002](0002-motif-calculator-app.md) | AFK | Done | 0001 | Add a real Motif calculator fixture app. |
 | [0003](0003-hook-state-smoke-test.md) | AFK | Proposed | 0001, 0002 | Prove the Xt hook sees the calculator. |
 | [0004](0004-automated-xnee-recording.md) | AFK | Proposed | 0003 | Script a deterministic `cnee` recording. |
 | [0005](0005-translation-and-generated-test.md) | AFK | Proposed | 0004 | Translate the recording into a pytest. |

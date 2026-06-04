@@ -32,6 +32,10 @@ COPY . .
 
 RUN python -m pip install -e '.[dev]' \
     && make -C c clean \
-    && make -C c
+    && make -C c \
+    && if [ -f examples/motif_calc/Makefile ]; then \
+        make -C examples/motif_calc clean \
+        && make -C examples/motif_calc; \
+    fi
 
 CMD ["bash"]

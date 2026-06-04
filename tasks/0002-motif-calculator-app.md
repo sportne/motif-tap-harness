@@ -1,6 +1,6 @@
 # Task: Motif Calculator App
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0001
 
@@ -31,14 +31,14 @@ tests can assert behavior without needing Motif label text introspection.
 
 ## Acceptance Criteria
 
-- [ ] `examples/motif_calc/` contains C source and a Makefile.
-- [ ] The calculator builds inside the live-loop container.
-- [ ] The calculator launches under Xvfb.
-- [ ] It supports at least `+`, `-`, `*`, and `/`.
-- [ ] Widgets have explicit stable names for digits, operation buttons,
+- [x] `examples/motif_calc/` contains C source and a Makefile.
+- [x] The calculator builds inside the live-loop container.
+- [x] The calculator launches under Xvfb.
+- [x] It supports at least `+`, `-`, `*`, and `/`.
+- [x] Widgets have explicit stable names for digits, operation buttons,
       equals/clear buttons, and result display.
-- [ ] Evaluating `7 * 6 =` writes `42` to `/tmp/motif-calc/result.txt`.
-- [ ] Division by zero produces a deterministic display/result value such as
+- [x] Evaluating `7 * 6 =` writes `42` to `/tmp/motif-calc/result.txt`.
+- [x] Division by zero produces a deterministic display/result value such as
       `ERR` and does not crash.
 
 ## Validation Required
@@ -64,4 +64,3 @@ The exact binary name may differ, but it must be documented in the task update.
 - Use Motif/Xt widgets, not raw Xlib drawing, so the hook can inspect the UI.
 - Prefer simple push buttons and a label/text field for the display.
 - Keep calculator state intentionally small and deterministic.
-
