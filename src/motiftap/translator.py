@@ -52,6 +52,10 @@ def _render_click(action: Action, timeline: WidgetTimeline) -> RenderedLine:
     y = int(action.data["y"])
     button = int(action.data.get("button", 1))
     widget = timeline.hit_test(action.t, x, y)
+    snapshot_reason = f"recorded at root ({x}, {y})"
+    if widget is None and action.t <= timeline.snapshots[0].t:
+        widget = timeline.hit_test(timeline.snapshots[-1].t, x, y)
+        snapshot_reason = f"recorded at root ({x}, {y}); matched latest snapshot"
 
     if widget is None:
         return RenderedLine(
@@ -65,7 +69,7 @@ def _render_click(action: Action, timeline: WidgetTimeline) -> RenderedLine:
         return RenderedLine(
             code=f"        app.click({widget.path!r}, button={button})",
             confidence=confidence,
-            reason=f"{widget.klass}, recorded at root ({x}, {y})",
+            reason=f"{widget.klass}, {snapshot_reason}",
         )
 
     rel_x = x - widget.root_x

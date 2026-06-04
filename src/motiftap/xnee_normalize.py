@@ -11,7 +11,7 @@ from motiftap.events import RawEvent
 # deliberately permissive starter rules. The normalized JSONL format is the
 # stable boundary for the rest of the project.
 _TIME_PATTERNS = [
-    re.compile(r"(?:time|t)\s*[=:]\s*(?P<t>\d+(?:\.\d+)?)", re.IGNORECASE),
+    re.compile(r"\b(?:time|t)\b\s*[=:]\s*(?P<t>\d+(?:\.\d+)?)", re.IGNORECASE),
     re.compile(r"^\s*(?P<t>\d+(?:\.\d+)?)\s+"),
 ]
 

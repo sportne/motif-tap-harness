@@ -1,6 +1,6 @@
 # Task: Translation And Generated Test
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0004
 
@@ -31,14 +31,14 @@ the containerized calculator.
 
 ## Acceptance Criteria
 
-- [ ] A script runs `motif-translate` against the calculator recording.
-- [ ] The output pytest lives under `tests/gui/`.
-- [ ] Most calculator button clicks translate to `app.click(widget_path)` with
+- [x] A script runs `motif-translate` against the calculator recording.
+- [x] The output pytest lives under `tests/gui/`.
+- [x] Most calculator button clicks translate to `app.click(widget_path)` with
       `HIGH` confidence.
-- [ ] The generated pytest includes a result assertion or has a documented
+- [x] The generated pytest includes a result assertion or has a documented
       minimal post-generation patch that adds one.
-- [ ] The translation command prints confidence counts.
-- [ ] Any normalizer or translator code changes include unit tests.
+- [x] The translation command prints confidence counts.
+- [x] Any normalizer or translator code changes include unit tests.
 
 ## Validation Required
 
@@ -59,4 +59,3 @@ buttons and an assertion for `/tmp/motif-calc/result.txt`.
 - If generated tests are committed, keep them readable and small.
 - If generated tests are not committed, the script must write them to a known
   temp or artifact path and print that path.
-

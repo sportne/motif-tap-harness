@@ -82,8 +82,25 @@ deadline = time.monotonic() + 10
 while time.monotonic() < deadline:
     if state_path.exists() and state_path.stat().st_size:
         state = json.loads(state_path.read_text(encoding="utf-8"))
-        paths = {widget["path"] for widget in state.get("widgets", [])}
-        if all(any(path.endswith(suffix) for path in paths) for suffix in required):
+        widgets = state.get("widgets", [])
+        ready = True
+        for suffix in required:
+            matches = [widget for widget in widgets if widget["path"].endswith(suffix)]
+            if not matches:
+                ready = False
+                break
+            widget = matches[0]
+            if (
+                not widget.get("managed", True)
+                or not widget.get("sensitive", True)
+                or not widget.get("realized", True)
+                or int(widget.get("width", 0)) <= 0
+                or int(widget.get("height", 0)) <= 0
+                or int(widget.get("root_y", 0)) <= 0
+            ):
+                ready = False
+                break
+        if ready:
             raise SystemExit(0)
     time.sleep(0.1)
 raise SystemExit("required calculator widgets did not appear")

@@ -12,3 +12,4 @@ def test_normalize_cnee_human_button_events_with_root_coordinates():
     assert [event.phase for event in events] == ["press", "release"]
     assert [event.button for event in events] == [1, 1]
     assert [(event.x, event.y) for event in events] == [(10, 20), (10, 20)]
+    assert [event.t for event in events] == [0.0, 0.001]
