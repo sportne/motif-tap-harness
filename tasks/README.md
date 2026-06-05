@@ -48,7 +48,7 @@ each task independently understandable and update its status as work progresses.
 | [0011](0011-translation-review-report.md) | AFK | Done | None | Add translation reports and a TODO gate for generated tests. |
 | [0012](0012-xt-hook-path-stability.md) | AFK | Done | None | Stabilize Xt hook widget paths and snapshot behavior. |
 | [0013](0013-event-normalization-hardening.md) | AFK | Done | None | Expand practical event normalization coverage while preserving TODO fallbacks. |
-| [0014](0014-automated-live-loop-gate.md) | AFK | Proposed | 0008 | Run the live-loop proof automatically for relevant changes. |
+| [0014](0014-automated-live-loop-gate.md) | AFK | Done | 0008 | Run the live-loop proof automatically for relevant changes. |
 
 ## Workflow
 

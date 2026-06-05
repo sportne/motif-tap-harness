@@ -1,11 +1,36 @@
 name: live-loop
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'c/**'
+      - 'containers/live-loop/**'
+      - 'examples/motif_calc/**'
+      - 'pyproject.toml'
+      - 'scripts/live-loop-*.sh'
+      - 'src/motiftap/**'
+      - 'tests/**'
+  push:
+    paths:
+      - '.github/workflows/**'
+      - 'c/**'
+      - 'containers/live-loop/**'
+      - 'examples/motif_calc/**'
+      - 'pyproject.toml'
+      - 'scripts/live-loop-*.sh'
+      - 'src/motiftap/**'
+      - 'tests/**'
   workflow_dispatch:
+
+concurrency:
+  group: live-loop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   live-loop:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Build live-loop image
@@ -23,3 +48,4 @@ jobs:
         with:
           name: live-loop-artifacts
           path: live-loop-artifacts
+          if-no-files-found: warn

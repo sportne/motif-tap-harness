@@ -1,6 +1,6 @@
 # Task: Automated Live Loop Gate
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: 0008
 
@@ -29,14 +29,14 @@ upload useful artifacts on failure.
 
 ## Acceptance Criteria
 
-- [ ] The live-loop workflow runs automatically for relevant changes to
+- [x] The live-loop workflow runs automatically for relevant changes to
       `c/**`, `src/motiftap/**`, `scripts/live-loop-*.sh`,
       `containers/live-loop/**`, tests, and workflow files.
-- [ ] The workflow keeps `workflow_dispatch` support for manual runs.
-- [ ] Artifacts are uploaded on success and failure, with failure logs easy to
+- [x] The workflow keeps `workflow_dispatch` support for manual runs.
+- [x] Artifacts are uploaded on success and failure, with failure logs easy to
       find.
-- [ ] The workflow has a sensible timeout and concurrency policy.
-- [ ] Documentation explains when the live-loop gate runs and how to reproduce
+- [x] The workflow has a sensible timeout and concurrency policy.
+- [x] Documentation explains when the live-loop gate runs and how to reproduce
       it locally.
 
 ## Validation Required

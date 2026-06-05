@@ -29,6 +29,15 @@ The live-loop proof is intentionally slower. It starts Xvfb and `openbox`,
 records a real Motif calculator workflow with `cnee`, translates it, replays the
 generated pytest through `MotifApp`, and asserts the calculator result.
 
+The GitHub Actions `live-loop` workflow runs automatically for pull requests and
+pushes that touch the harness, hook, calculator fixture, package metadata,
+live-loop scripts, tests, container image, or workflow files.
+Documentation-only changes outside those paths do not trigger it. The workflow
+can still be started manually with `workflow_dispatch`.
+
+The workflow has a 30-minute timeout, cancels older in-progress runs on the same
+ref, and uploads `live-loop-artifacts` on both success and failure.
+
 Docker:
 
 ```bash

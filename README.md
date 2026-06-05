@@ -87,7 +87,9 @@ podman run --rm motif-tap-live-loop scripts/live-loop-demo.sh
 ```
 
 See [`docs/ci.md`](docs/ci.md) for artifact preservation, troubleshooting, and
-CI guidance.
+CI guidance. The `live-loop` GitHub Actions workflow runs automatically for
+changes to harness, hook, calculator fixture, package metadata, script,
+container, test, and workflow files, and can also be run manually.
 
 ## Documentation
 
