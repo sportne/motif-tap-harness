@@ -202,14 +202,16 @@ raw Xnee recordings as the only regression artifact
 
 ---
 
-## Translation report idea
+## Translation report
 
-A future HTML report should show:
+`motif-translate` can write a compact Markdown review report:
 
-```text
-Action 1: click 842,416 -> myApp.mainWindow.form.applyButton [HIGH]
-Action 2: key Return -> app.press("Return") [HIGH]
-Action 3: click 517,300 -> myApp.mainWindow.drawingArea +183,+72 [LOW]
+```bash
+motif-translate recordings/open_valid_file \
+  --out tests/test_open_valid_file.py \
+  --report recordings/open_valid_file/report.md
 ```
 
-That report would make reviews faster.
+The report includes confidence counts and one row per generated action with the
+matched widget path or root coordinate. Use `--fail-on-todo` when a CI or review
+step should fail until every `TODO` action has been addressed.

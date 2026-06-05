@@ -57,7 +57,8 @@ Then:
 ```bash
 motif-translate \
   recordings/smoke_open_file \
-  --out tests/test_smoke_open_file.py
+  --out tests/test_smoke_open_file.py \
+  --report recordings/smoke_open_file/report.md
 ```
 
 Expected terminal output:
@@ -72,6 +73,8 @@ Translation confidence counts:
 ```
 
 The user opens the generated test and reviews it.
+If the workflow should fail when any action needs manual handling, add
+`--fail-on-todo`.
 
 ---
 

@@ -28,6 +28,8 @@ class RenderedLine:
     code: str
     confidence: str
     reason: str
+    action: str = ""
+    target: str = ""
 
 
 def safe_test_name(name: str) -> str:
@@ -62,6 +64,8 @@ def _render_click(action: Action, timeline: WidgetTimeline) -> RenderedLine:
             code=f"        app.click_root({x}, {y}, button={button})",
             confidence="TODO",
             reason="no widget matched the recorded root coordinate",
+            action="click",
+            target=f"root ({x}, {y})",
         )
 
     confidence = confidence_for(widget)
@@ -70,6 +74,8 @@ def _render_click(action: Action, timeline: WidgetTimeline) -> RenderedLine:
             code=f"        app.click({widget.path!r}, button={button})",
             confidence=confidence,
             reason=f"{widget.klass}, {snapshot_reason}",
+            action="click",
+            target=widget.path,
         )
 
     rel_x = x - widget.root_x
@@ -78,6 +84,8 @@ def _render_click(action: Action, timeline: WidgetTimeline) -> RenderedLine:
         code=f"        app.click_relative({widget.path!r}, {rel_x}, {rel_y}, button={button})",
         confidence="LOW",
         reason=f"parent-relative fallback inside {widget.klass}",
+        action="click_relative",
+        target=f"{widget.path} +{rel_x},{rel_y}",
     )
 
 
@@ -89,7 +97,11 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
         key = str(action.data["key"])
         return [
             RenderedLine(
-                code=f"        app.press({key!r})", confidence="HIGH", reason="keyboard action"
+                code=f"        app.press({key!r})",
+                confidence="HIGH",
+                reason="keyboard action",
+                action="press",
+                target=key,
             )
         ]
 
@@ -100,6 +112,8 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
                 code=f"        app.type_text({text!r})",
                 confidence="HIGH",
                 reason="coalesced text input",
+                action="type_text",
+                target=text,
             )
         ]
 
@@ -109,6 +123,8 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
                 code=f"        # TODO: drag gesture recorded; review manually: {action.data!r}",
                 confidence="TODO",
                 reason="drag gestures need application-specific handling",
+                action="drag_or_raw_mouse",
+                target=str(action.data),
             )
         ]
 
@@ -117,6 +133,8 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
             code=f"        # TODO: unhandled action {action.op!r}: {action.data!r}",
             confidence="TODO",
             reason="unknown action",
+            action=action.op,
+            target=str(action.data),
         )
     ]
 
@@ -125,6 +143,47 @@ def render_action(action: Action, timeline: WidgetTimeline) -> list[RenderedLine
 class TranslationResult:
     code: str
     counts: dict[str, int]
+    rendered: list[RenderedLine]
+
+
+def render_report(result: TranslationResult, *, title: str = "Translation report") -> str:
+    lines = [
+        f"# {title}",
+        "",
+        "## Summary",
+        "",
+        "| Confidence | Count |",
+        "| --- | ---: |",
+    ]
+    for key in ["HIGH", "MEDIUM", "LOW", "TODO"]:
+        lines.append(f"| {key} | {result.counts.get(key, 0)} |")
+
+    lines.extend(
+        [
+            "",
+            "## Actions",
+            "",
+            "| # | Confidence | Action | Target | Reason |",
+            "| ---: | --- | --- | --- | --- |",
+        ]
+    )
+
+    for index, rendered in enumerate(result.rendered, start=1):
+        lines.append(
+            "| {} | {} | {} | {} | {} |".format(
+                index,
+                _report_cell(rendered.confidence),
+                _report_cell(rendered.action or "unknown"),
+                _report_cell(rendered.target),
+                _report_cell(rendered.reason),
+            )
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def _report_cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
 
 
 def generate_test(
@@ -144,6 +203,7 @@ def generate_test(
 
     function_name = safe_test_name(test_name)
     counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0, "TODO": 0}
+    rendered_actions: list[RenderedLine] = []
 
     lines: list[str] = [
         "from motiftap.harness import MotifApp",
@@ -158,6 +218,7 @@ def generate_test(
         rendered_lines = render_action(action, timeline)
         for rendered in rendered_lines:
             counts[rendered.confidence] = counts.get(rendered.confidence, 0) + 1
+            rendered_actions.append(rendered)
             if rendered.code.strip().startswith("#"):
                 lines.append(rendered.code)
             else:
@@ -173,7 +234,7 @@ def generate_test(
         ]
     )
 
-    return TranslationResult(code="\n".join(lines) + "\n", counts=counts)
+    return TranslationResult(code="\n".join(lines) + "\n", counts=counts, rendered=rendered_actions)
 
 
 def translate_recording(

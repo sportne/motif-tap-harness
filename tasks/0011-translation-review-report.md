@@ -1,6 +1,6 @@
 # Task: Translation Review Report
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -29,13 +29,13 @@ fail when the translation contains TODO actions.
 
 ## Acceptance Criteria
 
-- [ ] `motif-translate --report <path>` writes a review report.
-- [ ] The report lists every rendered action with operation, confidence, reason,
+- [x] `motif-translate --report <path>` writes a review report.
+- [x] The report lists every rendered action with operation, confidence, reason,
       and relevant widget path or root coordinate.
-- [ ] The report includes summary counts for HIGH, MEDIUM, LOW, and TODO.
-- [ ] `motif-translate --fail-on-todo` exits nonzero when TODO actions are
+- [x] The report includes summary counts for HIGH, MEDIUM, LOW, and TODO.
+- [x] `motif-translate --fail-on-todo` exits nonzero when TODO actions are
       present and still writes requested output artifacts.
-- [ ] Tests cover report content, confidence counts, no-TODO success, and
+- [x] Tests cover report content, confidence counts, no-TODO success, and
       TODO-gated failure.
 
 ## Validation Required

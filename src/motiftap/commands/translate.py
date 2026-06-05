@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from motiftap.translator import translate_recording
+from motiftap.translator import render_report, translate_recording
 
 
 def _split_app_args(raw: list[str] | None) -> list[str] | None:
@@ -23,6 +23,12 @@ def main(argv: list[str] | None = None) -> int:
         help="Recording directory containing meta.json, events.jsonl, widgets.jsonl",
     )
     parser.add_argument("--out", required=True, help="Output Python test file")
+    parser.add_argument("--report", default=None, help="Optional translation report path")
+    parser.add_argument(
+        "--fail-on-todo",
+        action="store_true",
+        help="Exit nonzero if translation produced TODO actions",
+    )
     parser.add_argument(
         "--test-name",
         default=None,
@@ -41,10 +47,22 @@ def main(argv: list[str] | None = None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(result.code, encoding="utf-8")
 
+    if args.report:
+        report = Path(args.report)
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(
+            render_report(result, title=f"Translation report: {Path(args.recording_dir).name}"),
+            encoding="utf-8",
+        )
+
     print(f"Wrote {out}")
     print("Translation confidence counts:")
     for key in ["HIGH", "MEDIUM", "LOW", "TODO"]:
         print(f"  {key:6s} {result.counts.get(key, 0)}")
+    if args.report:
+        print(f"Wrote report {args.report}")
+    if args.fail_on_todo and result.counts.get("TODO", 0) > 0:
+        raise SystemExit("Translation produced TODO actions")
     return 0
 
 
