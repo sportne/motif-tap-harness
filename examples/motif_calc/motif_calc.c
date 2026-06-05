@@ -3,6 +3,7 @@
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Xm.h>
+#include <X11/keysym.h>
 
 #include <errno.h>
 #include <math.h>
@@ -23,6 +24,24 @@ typedef struct {
     int start_new_input;
     int error;
 } CalcState;
+
+typedef enum {
+    CALC_BUTTON_DIGIT,
+    CALC_BUTTON_OPERATOR,
+    CALC_BUTTON_EQUALS,
+    CALC_BUTTON_CLEAR
+} CalcButtonKind;
+
+typedef struct {
+    Widget widget;
+    CalcButtonKind kind;
+} CalcButtonRef;
+
+typedef struct {
+    CalcState *state;
+    CalcButtonRef buttons[16];
+    int button_count;
+} CalcUi;
 
 static void set_display(CalcState *state, const char *text) {
     XmString value = XmStringCreateLocalized((char *)text);
@@ -186,6 +205,172 @@ static Widget make_button(
     return button;
 }
 
+static void add_button_ref(CalcUi *ui, Widget widget, CalcButtonKind kind) {
+    if (ui->button_count < (int)(sizeof(ui->buttons) / sizeof(ui->buttons[0]))) {
+        ui->buttons[ui->button_count].widget = widget;
+        ui->buttons[ui->button_count].kind = kind;
+        ui->button_count++;
+    }
+}
+
+static void dispatch_button_ref(CalcButtonRef *button, CalcState *state) {
+    switch (button->kind) {
+        case CALC_BUTTON_DIGIT:
+            digit_cb(button->widget, state, NULL);
+            break;
+        case CALC_BUTTON_OPERATOR:
+            operator_cb(button->widget, state, NULL);
+            break;
+        case CALC_BUTTON_EQUALS:
+            equals_cb(button->widget, state, NULL);
+            break;
+        case CALC_BUTTON_CLEAR:
+            clear_cb(button->widget, state, NULL);
+            break;
+    }
+}
+
+static CalcButtonRef *find_button_by_name(CalcUi *ui, const char *name) {
+    if (!ui || !name) {
+        return NULL;
+    }
+
+    for (int i = 0; i < ui->button_count; ++i) {
+        const char *button_name = XtName(ui->buttons[i].widget);
+        if (button_name && strcmp(button_name, name) == 0) {
+            return &ui->buttons[i];
+        }
+    }
+
+    return NULL;
+}
+
+static void dispatch_button_name(CalcUi *ui, const char *name) {
+    CalcButtonRef *button = find_button_by_name(ui, name);
+    if (button) {
+        dispatch_button_ref(button, ui->state);
+    }
+}
+
+static void calculator_key_press_cb(
+    Widget widget,
+    XtPointer client_data,
+    XEvent *event,
+    Boolean *continue_to_dispatch
+) {
+    (void)widget;
+
+    if (!event || event->type != KeyPress) {
+        return;
+    }
+
+    CalcUi *ui = (CalcUi *)client_data;
+    if (!ui || !ui->state) {
+        return;
+    }
+
+    KeySym keysym = XLookupKeysym(&event->xkey, 0);
+    if (keysym >= XK_0 && keysym <= XK_9) {
+        char name[] = "digit0";
+        name[5] = (char)('0' + (keysym - XK_0));
+        dispatch_button_name(ui, name);
+    } else if (keysym >= XK_KP_0 && keysym <= XK_KP_9) {
+        char name[] = "digit0";
+        name[5] = (char)('0' + (keysym - XK_KP_0));
+        dispatch_button_name(ui, name);
+    } else if (keysym == XK_asterisk || keysym == XK_KP_Multiply) {
+        dispatch_button_name(ui, "multiplyButton");
+    } else if (keysym == XK_plus || keysym == XK_KP_Add) {
+        dispatch_button_name(ui, "addButton");
+    } else if (keysym == XK_minus || keysym == XK_KP_Subtract) {
+        dispatch_button_name(ui, "subtractButton");
+    } else if (keysym == XK_slash || keysym == XK_KP_Divide) {
+        dispatch_button_name(ui, "divideButton");
+    } else if (keysym == XK_Return || keysym == XK_KP_Enter || keysym == XK_equal) {
+        dispatch_button_name(ui, "equalsButton");
+    } else if (keysym == XK_Escape || keysym == XK_c || keysym == XK_C) {
+        dispatch_button_name(ui, "clearButton");
+    } else {
+        return;
+    }
+
+    if (continue_to_dispatch) {
+        *continue_to_dispatch = False;
+    }
+}
+
+static int widget_xy_relative_to(Widget child, Widget ancestor, Position *out_x, Position *out_y) {
+    Position total_x = 0;
+    Position total_y = 0;
+
+    for (Widget current = child; current; current = XtParent(current)) {
+        if (current == ancestor) {
+            *out_x = total_x;
+            *out_y = total_y;
+            return 1;
+        }
+
+        Position x = 0;
+        Position y = 0;
+        XtVaGetValues(current, XmNx, &x, XmNy, &y, NULL);
+        total_x += x;
+        total_y += y;
+    }
+
+    return 0;
+}
+
+static void keypad_button_release_cb(
+    Widget widget,
+    XtPointer client_data,
+    XEvent *event,
+    Boolean *continue_to_dispatch
+) {
+    (void)widget;
+    (void)continue_to_dispatch;
+
+    if (!event || event->type != ButtonRelease || event->xbutton.button != Button1) {
+        return;
+    }
+
+    CalcUi *ui = (CalcUi *)client_data;
+    if (!ui || !ui->state) {
+        return;
+    }
+
+    for (int i = 0; i < ui->button_count; ++i) {
+        CalcButtonRef *button = &ui->buttons[i];
+        Position x = 0;
+        Position y = 0;
+        Dimension width = 0;
+        Dimension height = 0;
+        XtVaGetValues(
+            button->widget,
+            XmNwidth,
+            &width,
+            XmNheight,
+            &height,
+            NULL
+        );
+        if (!widget_xy_relative_to(button->widget, widget, &x, &y)) {
+            continue;
+        }
+
+        if (
+            event->xbutton.x >= x &&
+            event->xbutton.x < x + (Position)width &&
+            event->xbutton.y >= y &&
+            event->xbutton.y < y + (Position)height
+        ) {
+            dispatch_button_ref(button, ui->state);
+            if (continue_to_dispatch) {
+                *continue_to_dispatch = False;
+            }
+            return;
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     XtAppContext app;
     Widget shell = XtVaAppInitialize(
@@ -256,27 +441,39 @@ int main(int argc, char **argv) {
     state.display = display;
     clear_state(&state);
 
-    make_button(keypad, "digit7", "7", digit_cb, &state);
-    make_button(keypad, "digit8", "8", digit_cb, &state);
-    make_button(keypad, "digit9", "9", digit_cb, &state);
-    make_button(keypad, "divideButton", "/", operator_cb, &state);
+    CalcUi ui;
+    memset(&ui, 0, sizeof(ui));
+    ui.state = &state;
 
-    make_button(keypad, "digit4", "4", digit_cb, &state);
-    make_button(keypad, "digit5", "5", digit_cb, &state);
-    make_button(keypad, "digit6", "6", digit_cb, &state);
-    make_button(keypad, "multiplyButton", "*", operator_cb, &state);
+    add_button_ref(&ui, make_button(keypad, "digit7", "7", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit8", "8", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit9", "9", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "divideButton", "/", operator_cb, &state), CALC_BUTTON_OPERATOR);
 
-    make_button(keypad, "digit1", "1", digit_cb, &state);
-    make_button(keypad, "digit2", "2", digit_cb, &state);
-    make_button(keypad, "digit3", "3", digit_cb, &state);
-    make_button(keypad, "subtractButton", "-", operator_cb, &state);
+    add_button_ref(&ui, make_button(keypad, "digit4", "4", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit5", "5", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit6", "6", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "multiplyButton", "*", operator_cb, &state), CALC_BUTTON_OPERATOR);
 
-    make_button(keypad, "clearButton", "C", clear_cb, &state);
-    make_button(keypad, "digit0", "0", digit_cb, &state);
-    make_button(keypad, "equalsButton", "=", equals_cb, &state);
-    make_button(keypad, "addButton", "+", operator_cb, &state);
+    add_button_ref(&ui, make_button(keypad, "digit1", "1", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit2", "2", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "digit3", "3", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "subtractButton", "-", operator_cb, &state), CALC_BUTTON_OPERATOR);
+
+    add_button_ref(&ui, make_button(keypad, "clearButton", "C", clear_cb, &state), CALC_BUTTON_CLEAR);
+    add_button_ref(&ui, make_button(keypad, "digit0", "0", digit_cb, &state), CALC_BUTTON_DIGIT);
+    add_button_ref(&ui, make_button(keypad, "equalsButton", "=", equals_cb, &state), CALC_BUTTON_EQUALS);
+    add_button_ref(&ui, make_button(keypad, "addButton", "+", operator_cb, &state), CALC_BUTTON_OPERATOR);
+
+    XtAddEventHandler(shell, ButtonReleaseMask, False, keypad_button_release_cb, &ui);
+    XtAddEventHandler(form, ButtonReleaseMask, False, keypad_button_release_cb, &ui);
+    XtAddEventHandler(keypad, ButtonReleaseMask, False, keypad_button_release_cb, &ui);
+    XtAddEventHandler(shell, KeyPressMask, False, calculator_key_press_cb, &ui);
+    XtAddEventHandler(form, KeyPressMask, False, calculator_key_press_cb, &ui);
+    XtAddEventHandler(keypad, KeyPressMask, False, calculator_key_press_cb, &ui);
 
     XtRealizeWidget(shell);
+    XtSetKeyboardFocus(shell, form);
     XtAppMainLoop(app);
     return 0;
 }

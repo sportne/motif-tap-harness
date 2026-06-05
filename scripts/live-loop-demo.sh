@@ -27,7 +27,7 @@ mkdir -p "${BASE_DIR}"
 rm -rf "${REPLAY_DIR}"
 mkdir -p "${REPLAY_DIR}"
 
-"${ROOT_DIR}/scripts/live-loop-translate.sh" >"${BASE_DIR}/translate.log"
+bash "${ROOT_DIR}/scripts/live-loop-translate.sh" >"${BASE_DIR}/translate.log"
 
 for display_number in $(seq 99 109); do
   if [[ -e "/tmp/.X${display_number}-lock" ]]; then

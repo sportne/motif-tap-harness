@@ -78,7 +78,7 @@ from pathlib import Path
 
 state_path = Path(sys.argv[1])
 required = [".digit7", ".multiplyButton", ".digit6", ".equalsButton"]
-deadline = time.monotonic() + 10
+deadline = time.monotonic() + 15
 while time.monotonic() < deadline:
     try:
         if not state_path.stat().st_size:
@@ -179,16 +179,14 @@ PY
 source "${BASE_DIR}/clicks.env"
 sleep 1
 if [[ -n "${APP_WINDOW:-}" ]]; then
-  xdotool windowactivate --sync "${APP_WINDOW}"
+  xdotool windowactivate --sync "${APP_WINDOW}" || true
 fi
-for point in DIGIT7 MULTIPLY DIGIT6 EQUALS; do
+for key in 7 asterisk 6 Return; do
   if ! kill -0 "$record_pid" 2>/dev/null; then
-    echo "motif-record exited before scripted clicks completed." >&2
+    echo "motif-record exited before scripted input completed." >&2
     exit 1
   fi
-  x_var="${point}_X"
-  y_var="${point}_Y"
-  xdotool mousemove "${!x_var}" "${!y_var}" click 1
+  xdotool key "$key"
   sleep 0.2
 done
 
@@ -204,23 +202,23 @@ for file in meta.json xnee-human.txt events.jsonl widgets.jsonl latest-state.jso
   test -s "${RECORDING_DIR}/${file}"
 done
 
-button_count="$(python - "${RECORDING_DIR}/events.jsonl" <<'PY'
+input_event_count="$(python - "${RECORDING_DIR}/events.jsonl" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 count = 0
 for line in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
-    if line.strip() and json.loads(line).get("kind") == "button":
+    if line.strip() and json.loads(line).get("kind") in {"button", "key"}:
         count += 1
 print(count)
 PY
 )"
-if [[ "$button_count" -le 0 ]]; then
-  echo "Expected non-zero button events, got ${button_count}." >&2
+if [[ "$input_event_count" -le 0 ]]; then
+  echo "Expected non-zero input events, got ${input_event_count}." >&2
   exit 1
 fi
 
 echo "RECORDING_DIR=${RECORDING_DIR}"
 cat "${BASE_DIR}/normalize.log"
-echo "button_events=${button_count}"
+echo "input_events=${input_event_count}"

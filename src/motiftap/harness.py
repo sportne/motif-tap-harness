@@ -181,6 +181,26 @@ class MotifApp:
                 return str(window)
         return None
 
+    def _focus_top_window(self) -> None:
+        try:
+            top_window = self._top_window()
+        except Exception:
+            return
+        if not top_window:
+            return
+        try:
+            self._xdotool("windowactivate", "--sync", top_window)
+        except XdotoolError:
+            pass
+        self._click_at("--window", top_window, 1, 1, button=1)
+
+    def _click_at(self, *move_args: object, button: int = 1) -> None:
+        self._xdotool("mousemove", *move_args)
+        time.sleep(0.05)
+        self._xdotool("mousedown", button)
+        time.sleep(0.05)
+        self._xdotool("mouseup", button)
+
     def wait_for_widget(self, path: str, timeout: float | None = None) -> dict[str, Any]:
         deadline = time.monotonic() + (timeout or self.timeout)
         last_error: Exception | None = None
@@ -205,45 +225,41 @@ class MotifApp:
 
     def click(self, path: str, *, button: int = 1) -> None:
         widget = self.wait_for_widget(path)
-        top_window = self._top_window()
-        if top_window:
-            self._xdotool("windowactivate", "--sync", top_window)
+        self._focus_top_window()
 
         x = int(widget["width"]) // 2
         y = int(widget["height"]) // 2
         if widget.get("window"):
-            self._xdotool("mousemove", "--window", widget["window"], x, y, "click", button)
+            self._click_at("--window", widget["window"], x, y, button=button)
             return
 
-        self._xdotool(
-            "mousemove",
+        self._click_at(
             int(widget["root_x"]) + x,
             int(widget["root_y"]) + y,
-            "click",
-            button,
+            button=button,
         )
 
     def click_relative(self, path: str, x: int, y: int, *, button: int = 1) -> None:
         widget = self.wait_for_widget(path)
-        top_window = self._top_window()
-        if top_window:
-            self._xdotool("windowactivate", "--sync", top_window)
+        self._focus_top_window()
 
         if widget.get("window"):
-            self._xdotool("mousemove", "--window", widget["window"], x, y, "click", button)
+            self._click_at("--window", widget["window"], x, y, button=button)
             return
 
         root_x = int(widget["root_x"]) + int(x)
         root_y = int(widget["root_y"]) + int(y)
-        self._xdotool("mousemove", root_x, root_y, "click", button)
+        self._click_at(root_x, root_y, button=button)
 
     def click_root(self, x: int, y: int, *, button: int = 1) -> None:
-        self._xdotool("mousemove", x, y, "click", button)
+        self._click_at(x, y, button=button)
 
     def press(self, key: str) -> None:
+        self._focus_top_window()
         self._xdotool("key", key)
 
     def type_text(self, text: str, *, delay_ms: int = 5) -> None:
+        self._focus_top_window()
         self._xdotool("type", "--delay", delay_ms, text)
 
     def wait_for_idle(self, seconds: float = 0.2) -> None:

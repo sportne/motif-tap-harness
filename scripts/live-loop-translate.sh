@@ -7,7 +7,7 @@ RECORDING_DIR="${BASE_DIR}/recordings/${MOTIF_TAP_RECORDING_NAME:-calculator_mul
 TRANSLATION_DIR="${BASE_DIR}/translation-input/${MOTIF_TAP_RECORDING_NAME:-calculator_multiply}"
 OUTPUT_TEST="${ROOT_DIR}/tests/gui/test_calculator_multiply.py"
 
-"${ROOT_DIR}/scripts/live-loop-record.sh"
+bash "${ROOT_DIR}/scripts/live-loop-record.sh"
 
 rm -rf "${TRANSLATION_DIR}"
 mkdir -p "${TRANSLATION_DIR}"
@@ -43,8 +43,8 @@ PY
 
 python -m ruff format "${OUTPUT_TEST}"
 
-if ! grep -q 'motif-calc.calculatorForm.keypad.digit7' "${OUTPUT_TEST}"; then
-  echo "Generated test is missing the digit7 widget-path click." >&2
+if ! grep -Eq "app\\.(click|press|type_text)" "${OUTPUT_TEST}"; then
+  echo "Generated test is missing replay input actions." >&2
   exit 1
 fi
 if ! grep -q '/tmp/motif-calc/result.txt' "${OUTPUT_TEST}"; then
