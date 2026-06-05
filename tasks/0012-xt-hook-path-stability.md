@@ -1,6 +1,6 @@
 # Task: Xt Hook Path Stability
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -30,15 +30,15 @@ and snapshot writing should avoid excessive churn.
 
 ## Acceptance Criteria
 
-- [ ] Siblings with duplicate Xt names produce stable, disambiguated paths.
-- [ ] Existing unique widget paths remain unchanged where possible.
-- [ ] Missing `dlsym(RTLD_NEXT, ...)` targets fail or log clearly without
+- [x] Siblings with duplicate Xt names produce stable, disambiguated paths.
+- [x] Existing unique widget paths remain unchanged where possible.
+- [x] Missing `dlsym(RTLD_NEXT, ...)` targets fail or log clearly without
       undefined calls through null function pointers.
-- [ ] Optional hook debug logging can be enabled through an environment
+- [x] Optional hook debug logging can be enabled through an environment
       variable and is quiet by default.
-- [ ] Snapshot writes are debounced or otherwise limited enough to reduce log
+- [x] Snapshot writes are debounced or otherwise limited enough to reduce log
       churn during rapid widget changes.
-- [ ] The calculator hook smoke still passes and expected calculator widget
+- [x] The calculator hook smoke still passes and expected calculator widget
       paths remain discoverable.
 
 ## Validation Required

@@ -77,14 +77,16 @@ Xt paths are weaker when siblings share names.
 Example:
 
 ```text
-myApp.dialog.form.button
-myApp.dialog.form.button
+myApp.dialog.form.button[0]
+myApp.dialog.form.button[1]
 ```
+
+The hook adds indexes only for duplicate sibling names, so existing unique paths
+stay shorter.
 
 Mitigation:
 
 ```text
-add sibling indexes in the hook
 improve widget names in source or GUI builder
 add alias mapping
 ```

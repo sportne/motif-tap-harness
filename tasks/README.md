@@ -46,7 +46,7 @@ each task independently understandable and update its status as work progresses.
 | [0009](0009-recorder-output-validation.md) | AFK | Done | None | Validate recorder outputs and subprocess failures before reporting success. |
 | [0010](0010-replay-diagnostics-and-waits.md) | AFK | Done | None | Improve replay diagnostics and add a small condition-wait helper. |
 | [0011](0011-translation-review-report.md) | AFK | Done | None | Add translation reports and a TODO gate for generated tests. |
-| [0012](0012-xt-hook-path-stability.md) | AFK | Proposed | None | Stabilize Xt hook widget paths and snapshot behavior. |
+| [0012](0012-xt-hook-path-stability.md) | AFK | Done | None | Stabilize Xt hook widget paths and snapshot behavior. |
 | [0013](0013-event-normalization-hardening.md) | AFK | Proposed | None | Expand practical event normalization coverage while preserving TODO fallbacks. |
 | [0014](0014-automated-live-loop-gate.md) | AFK | Proposed | 0008 | Run the live-loop proof automatically for relevant changes. |
 

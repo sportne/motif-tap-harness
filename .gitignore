@@ -21,6 +21,7 @@ wheelhouse/
 
 # C build products
 c/libxttap.so
+c/xttap-self-test
 c/*.o
 c/*.a
 c/*.so

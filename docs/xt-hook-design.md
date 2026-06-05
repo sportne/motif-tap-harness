@@ -199,28 +199,39 @@ For windowless items, the harness still clicks the corresponding location in the
 ## Duplicate names
 
 Xt allows sibling widgets to have duplicate names. This weakens path stability.
-
-The starter hook does not yet add sibling indexes. A production version should generate paths like:
+The hook leaves unique paths unchanged and adds sibling indexes only when two or
+more siblings would otherwise produce the same path segment:
 
 ```text
 myApp.dialog.form.button[0]
 myApp.dialog.form.button[1]
 ```
 
-only when duplicates exist.
-
 The best fix is to improve widget names in the application or GUI builder configuration.
+
+---
+
+## Debug logging
+
+The hook is quiet by default. Set `MOTIF_TAP_DEBUG=1` to log hook failures such
+as unresolved interposed Xt symbols or file-write errors to stderr.
 
 ---
 
 ## Performance
 
-The starter hook dumps the tree often. That is fine for initial experiments, but a large application may need throttling.
+The hook always refreshes `latest-state.json` when it dumps state because replay
+depends on current geometry. It suppresses duplicate `widgets.jsonl` appends
+when the widget tree has not changed, which reduces log churn without dropping
+the final tree after rapid startup.
+
+The starter hook still walks the full tree when it writes a snapshot. That is
+fine for initial experiments, but a large application may need more aggressive
+throttling.
 
 Future improvements:
 
 ```text
-debounce snapshots
 only dump after event-loop idle
 write binary/protobuf internally and convert later
 filter by realized widgets
