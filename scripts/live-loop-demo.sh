@@ -53,6 +53,7 @@ sleep 1
 
 rm -f /tmp/motif-calc/result.txt
 export MOTIF_TAP_SO="${ROOT_DIR}/c/libxttap.so"
+export TMPDIR="${REPLAY_DIR}"
 
 pytest "${GUI_TEST}" -q | tee "${REPLAY_DIR}/pytest.log"
 

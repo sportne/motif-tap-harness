@@ -41,7 +41,7 @@ jobs:
           docker run --rm \
             -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts \
             -v "$PWD/live-loop-artifacts:/artifacts" \
-            motif-tap-live-loop scripts/live-loop-demo.sh
+            motif-tap-live-loop bash scripts/live-loop-demo.sh
       - name: Upload live-loop artifacts
         uses: actions/upload-artifact@v4
         if: always()

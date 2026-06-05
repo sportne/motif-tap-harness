@@ -4,16 +4,23 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_DIR="${MOTIF_TAP_LIVE_ARTIFACT_DIR:-/tmp/motif-tap-live-loop}"
 RECORDING_DIR="${BASE_DIR}/recordings/${MOTIF_TAP_RECORDING_NAME:-calculator_multiply}"
+TRANSLATION_DIR="${BASE_DIR}/translation-input/${MOTIF_TAP_RECORDING_NAME:-calculator_multiply}"
 OUTPUT_TEST="${ROOT_DIR}/tests/gui/test_calculator_multiply.py"
 
 "${ROOT_DIR}/scripts/live-loop-record.sh"
 
+rm -rf "${TRANSLATION_DIR}"
+mkdir -p "${TRANSLATION_DIR}"
+cp "${RECORDING_DIR}/meta.json" "${TRANSLATION_DIR}/meta.json"
+cp "${RECORDING_DIR}/events.jsonl" "${TRANSLATION_DIR}/events.jsonl"
+cp "${RECORDING_DIR}/translation-widgets.jsonl" "${TRANSLATION_DIR}/widgets.jsonl"
+
 mkdir -p "$(dirname "${OUTPUT_TEST}")"
 motif-translate \
-  "${RECORDING_DIR}" \
+  "${TRANSLATION_DIR}" \
   --out "${OUTPUT_TEST}" \
   --test-name calculator_multiply \
-  --app "${ROOT_DIR}/examples/motif_calc/motif-calc"
+  --app "${ROOT_DIR}/examples/motif_calc/motif-calc" -geometry 400x320
 
 python - "${OUTPUT_TEST}" <<'PY'
 import sys

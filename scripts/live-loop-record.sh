@@ -54,7 +54,7 @@ motif-record \
   --output-dir "${RECORDING_PARENT}" \
   --tap-so "${ROOT_DIR}/c/libxttap.so" \
   --seconds 30 \
-  --app "${ROOT_DIR}/examples/motif_calc/motif-calc" \
+  --app "${ROOT_DIR}/examples/motif_calc/motif-calc" -geometry 400x320 \
   >"${BASE_DIR}/motif-record.log" 2>&1 &
 record_pid=$!
 
@@ -80,39 +80,88 @@ state_path = Path(sys.argv[1])
 required = [".digit7", ".multiplyButton", ".digit6", ".equalsButton"]
 deadline = time.monotonic() + 10
 while time.monotonic() < deadline:
-    if state_path.exists() and state_path.stat().st_size:
+    try:
+        if not state_path.stat().st_size:
+            time.sleep(0.1)
+            continue
         state = json.loads(state_path.read_text(encoding="utf-8"))
-        widgets = state.get("widgets", [])
-        ready = True
-        for suffix in required:
-            matches = [widget for widget in widgets if widget["path"].endswith(suffix)]
-            if not matches:
-                ready = False
-                break
-            widget = matches[0]
-            if (
-                not widget.get("managed", True)
-                or not widget.get("sensitive", True)
-                or not widget.get("realized", True)
-                or int(widget.get("width", 0)) <= 0
-                or int(widget.get("height", 0)) <= 0
-                or int(widget.get("root_y", 0)) <= 0
-            ):
-                ready = False
-                break
-        if ready:
-            raise SystemExit(0)
+    except (FileNotFoundError, json.JSONDecodeError):
+        time.sleep(0.1)
+        continue
+
+    widgets = state.get("widgets", [])
+    ready = True
+    centers = set()
+    for suffix in required:
+        matches = [widget for widget in widgets if widget["path"].endswith(suffix)]
+        if not matches:
+            ready = False
+            break
+        widget = matches[0]
+        root_x = int(widget.get("root_x", 0))
+        root_y = int(widget.get("root_y", 0))
+        width = int(widget.get("width", 0))
+        height = int(widget.get("height", 0))
+        if (
+            not widget.get("managed", True)
+            or not widget.get("sensitive", True)
+            or not widget.get("realized", True)
+            or width <= 0
+            or height <= 0
+            or root_x <= 0
+            or root_y <= 20
+        ):
+            ready = False
+            break
+        centers.add((root_x + width // 2, root_y + height // 2))
+    if len(centers) != len(required):
+        ready = False
+    if ready:
+        raise SystemExit(0)
     time.sleep(0.1)
 raise SystemExit("required calculator widgets did not appear")
+PY
+
+python - "${RECORDING_DIR}/latest-state.json" "${RECORDING_DIR}/translation-widgets.jsonl" <<'PY'
+import json
+import sys
+import time
+from pathlib import Path
+
+state_path = Path(sys.argv[1])
+deadline = time.monotonic() + 5
+while True:
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        break
+    except (FileNotFoundError, json.JSONDecodeError):
+        if time.monotonic() >= deadline:
+            raise
+        time.sleep(0.05)
+Path(sys.argv[2]).write_text(json.dumps(state, separators=(",", ":")) + "\n", encoding="utf-8")
 PY
 
 python - "${RECORDING_DIR}/latest-state.json" <<'PY' >"${BASE_DIR}/clicks.env"
 import json
 import sys
+import time
 from pathlib import Path
 
-state = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+state_path = Path(sys.argv[1])
+deadline = time.monotonic() + 5
+while True:
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        break
+    except (FileNotFoundError, json.JSONDecodeError):
+        if time.monotonic() >= deadline:
+            raise
+        time.sleep(0.05)
 widgets = state.get("widgets", [])
+for widget in widgets:
+    if widget.get("window") and widget.get("class") != "XmDisplay":
+        print(f"APP_WINDOW={widget['window']}")
+        break
 
 for key, suffix in [
     ("DIGIT7", ".digit7"),
@@ -129,6 +178,9 @@ PY
 
 source "${BASE_DIR}/clicks.env"
 sleep 1
+if [[ -n "${APP_WINDOW:-}" ]]; then
+  xdotool windowactivate --sync "${APP_WINDOW}"
+fi
 for point in DIGIT7 MULTIPLY DIGIT6 EQUALS; do
   if ! kill -0 "$record_pid" 2>/dev/null; then
     echo "motif-record exited before scripted clicks completed." >&2
@@ -136,9 +188,7 @@ for point in DIGIT7 MULTIPLY DIGIT6 EQUALS; do
   fi
   x_var="${point}_X"
   y_var="${point}_Y"
-  x="${!x_var}"
-  y="${!y_var}"
-  xdotool mousemove "$x" "$y" click 1
+  xdotool mousemove "${!x_var}" "${!y_var}" click 1
   sleep 0.2
 done
 

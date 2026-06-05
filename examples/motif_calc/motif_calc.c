@@ -198,6 +198,10 @@ int main(int argc, char **argv) {
         NULL,
         XmNtitle,
         "Motif Calculator",
+        XmNwidth,
+        400,
+        XmNheight,
+        320,
         NULL
     );
 

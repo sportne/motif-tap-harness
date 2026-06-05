@@ -241,17 +241,38 @@ static int tap_is_sensitive(Widget w) {
     return XtIsSensitive(w) ? 1 : 0;
 }
 
-static void tap_widget_root_xy(Widget w, int *rx, int *ry) {
+static int tap_widget_root_xy(Widget w, int *rx, int *ry) {
     *rx = 0;
     *ry = 0;
 
-    if (!w || !XtIsRealized(w)) return;
+    if (!w) return 0;
+
+    Position offset_x = 0;
+    Position offset_y = 0;
+    Widget anchor = w;
+    while (anchor && !XtIsRealized(anchor)) {
+        offset_x += anchor->core.x;
+        offset_y += anchor->core.y;
+        anchor = XtParent(anchor);
+    }
+
+    if (!anchor) {
+        for (int i = 0; i < tap_root_count; ++i) {
+            if (tap_roots[i] && XtIsRealized(tap_roots[i])) {
+                anchor = tap_roots[i];
+                break;
+            }
+        }
+    }
+
+    if (!anchor) return 0;
 
     Position x = 0;
     Position y = 0;
-    XtTranslateCoords(w, 0, 0, &x, &y);
+    XtTranslateCoords(anchor, offset_x, offset_y, &x, &y);
     *rx = (int)x;
     *ry = (int)y;
+    return 1;
 }
 
 static void tap_write_widget(FILE *f, Widget w, int *first) {
@@ -262,7 +283,7 @@ static void tap_write_widget(FILE *f, Widget w, int *first) {
 
     int root_x = 0;
     int root_y = 0;
-    tap_widget_root_xy(w, &root_x, &root_y);
+    int has_root_xy = tap_widget_root_xy(w, &root_x, &root_y);
 
     if (!*first) {
         fputc(',', f);
@@ -295,7 +316,7 @@ static void tap_write_widget(FILE *f, Widget w, int *first) {
         tap_widget_depth(w),
         tap_is_managed(w) ? "true" : "false",
         tap_is_sensitive(w) ? "true" : "false",
-        XtIsRealized(w) ? "true" : "false"
+        has_root_xy ? "true" : "false"
     );
 
     fprintf(f, "}");
@@ -568,6 +589,17 @@ void XtSetValues(Widget w, ArgList args, Cardinal num_args) {
     }
     real_fn(w, args, num_args);
     tap_note_widget(w);
+}
+
+typedef void (*real_XtAppMainLoop_fn)(XtAppContext);
+void XtAppMainLoop(XtAppContext app_context) {
+    real_XtAppMainLoop_fn real_fn = (real_XtAppMainLoop_fn)dlsym(RTLD_NEXT, "XtAppMainLoop");
+    if (!real_fn) {
+        tap_debug("could not resolve XtAppMainLoop: %s", dlerror());
+        return;
+    }
+    tap_dump_state();
+    real_fn(app_context);
 }
 
 #ifdef MOTIF_TAP_SELF_TEST
