@@ -100,22 +100,71 @@ def write_normalized_events(events: list[RawEvent], path: str | Path) -> None:
             f.write("\n")
 
 
+_KEY_TEXT_MAPPING = {
+    "space": " ",
+    "slash": "/",
+    "period": ".",
+    "comma": ",",
+    "minus": "-",
+    "underscore": "_",
+    "apostrophe": "'",
+    "quote": '"',
+    "semicolon": ";",
+    "colon": ":",
+    "backslash": "\\",
+    "grave": "`",
+    "asciitilde": "~",
+    "equal": "=",
+    "plus": "+",
+    "bracketleft": "[",
+    "bracketright": "]",
+    "braceleft": "{",
+    "braceright": "}",
+    "parenleft": "(",
+    "parenright": ")",
+    "exclam": "!",
+    "at": "@",
+    "numbersign": "#",
+    "dollar": "$",
+    "percent": "%",
+    "asciicircum": "^",
+    "ampersand": "&",
+    "asterisk": "*",
+    "less": "<",
+    "greater": ">",
+    "question": "?",
+}
+
+_MODIFIER_KEYS = {
+    "Alt",
+    "Alt_L",
+    "Alt_R",
+    "Control",
+    "Control_L",
+    "Control_R",
+    "Ctrl",
+    "Meta",
+    "Meta_L",
+    "Meta_R",
+    "Shift",
+    "Shift_L",
+    "Shift_R",
+    "Super",
+    "Super_L",
+    "Super_R",
+}
+
+
 def _looks_like_printable_key(key: str) -> bool:
+    if "+" in key:
+        return False
     if len(key) == 1:
         return True
-    return key in {"space", "slash", "period", "comma", "minus", "underscore"}
+    return key.lower() in _KEY_TEXT_MAPPING
 
 
 def _key_to_text(key: str) -> str:
-    mapping = {
-        "space": " ",
-        "slash": "/",
-        "period": ".",
-        "comma": ",",
-        "minus": "-",
-        "underscore": "_",
-    }
-    return mapping.get(key, key)
+    return _KEY_TEXT_MAPPING.get(key.lower(), key)
 
 
 def coalesce_events(
@@ -134,6 +183,7 @@ def coalesce_events(
 
     actions: list[Action] = []
     pending_button: dict[int, RawEvent] = {}
+    active_modifiers: set[str] = set()
     text_buffer: list[str] = []
     text_start_t: float | None = None
     text_last_t: float | None = None
@@ -194,7 +244,16 @@ def coalesce_events(
 
         if event.kind == "key" and event.phase == "press" and event.key:
             key = event.key
-            if _looks_like_printable_key(key):
+            if key in _MODIFIER_KEYS:
+                flush_text()
+                active_modifiers.add(key)
+                continue
+
+            if active_modifiers:
+                flush_text()
+                modifier = sorted(active_modifiers)[-1]
+                actions.append(Action(t=event.t, op="press", data={"key": f"{modifier}+{key}"}))
+            elif _looks_like_printable_key(key):
                 if text_last_t is not None and event.t - text_last_t > text_gap_seconds:
                     flush_text()
                 if text_start_t is None:
@@ -204,6 +263,9 @@ def coalesce_events(
             else:
                 flush_text()
                 actions.append(Action(t=event.t, op="press", data={"key": key}))
+
+        if event.kind == "key" and event.phase == "release" and event.key:
+            active_modifiers.discard(event.key)
 
     flush_text()
     return actions

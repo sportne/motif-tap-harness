@@ -128,6 +128,9 @@ wait for popup widgets before clicking them
 
 Text normalization may depend on keyboard layout and Xnee key naming.
 
+The starter handles common printable names and simple modifier shortcuts, but it
+does not implement a full keyboard layout engine.
+
 Mitigation:
 
 ```text

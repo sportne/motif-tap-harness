@@ -1,6 +1,6 @@
 # Task: Event Normalization Hardening
 
-Status: Proposed
+Status: Done
 Type: AFK
 Depends on: None
 
@@ -30,15 +30,15 @@ and unsupported gestures in a reviewable way.
 
 ## Acceptance Criteria
 
-- [ ] Printable key handling covers common names used by `cnee`, including
+- [x] Printable key handling covers common names used by `cnee`, including
       shifted punctuation where practical.
-- [ ] Modifier key sequences such as Alt menu shortcuts remain replayable as
+- [x] Modifier key sequences such as Alt menu shortcuts remain replayable as
       explicit key presses when they are not text input.
-- [ ] Drag and unsupported mouse gestures remain explicit TODO-style actions
+- [x] Drag and unsupported mouse gestures remain explicit TODO-style actions
       instead of being silently dropped.
-- [ ] Malformed or unknown input lines do not crash normalization unless the
+- [x] Malformed or unknown input lines do not crash normalization unless the
       line claims to be structured JSONL.
-- [ ] Tests cover shifted text, common printable names, modifiers, drag
+- [x] Tests cover shifted text, common printable names, modifiers, drag
       fallback, malformed human-output lines, and local `cnee` variants.
 
 ## Validation Required

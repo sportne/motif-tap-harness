@@ -36,6 +36,12 @@ _BUTTON_PATTERNS = [
 
 _KEY_PATTERNS = [
     re.compile(
+        r"(?P<phase>KeyPress|KeyRelease).*?"
+        r"(?:keysym|keyname)\s*[=: ]\s*(?:0x[0-9a-fA-F]+\s*)?"
+        r"(?P<key>[A-Za-z0-9_+\-./]+)",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"(?P<phase>KeyPress|KeyRelease|key\s+press|key\s+release).*?"
         r"(?:key|keysym|name)\s*[=: ]\s*(?P<key>[A-Za-z0-9_+\-./]+)",
         re.IGNORECASE,

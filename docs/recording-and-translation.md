@@ -133,7 +133,10 @@ becomes:
 app.type_text("/tmp/foo")
 ```
 
-You may need to adjust key normalization for keyboard layout, shifted characters, or Xnee's key naming.
+The starter normalizer handles common printable names such as `slash`,
+`bracketleft`, and `exclam`, and keeps modifier shortcuts such as `Alt_L+f` as
+explicit key presses. You may still need to adjust key normalization for local
+keyboard layout differences or unusual Xnee key naming.
 
 ---
 
