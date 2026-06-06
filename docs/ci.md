@@ -26,11 +26,13 @@ make -C c
 ```
 
 The live-loop proof is intentionally slower. It starts Xvfb and `openbox`,
-records a real Motif calculator workflow with `cnee`, translates it, replays the
-generated pytest through `MotifApp`, and asserts the calculator result.
+records real Motif workflows with `cnee`, translates them, replays the generated
+pytest files through `MotifApp`, and asserts application results. The calculator
+demo covers a compact button workflow. The work-order demo covers text entry,
+toggle state, `XmNotebook` tab navigation, and a real menu-based submit action.
 
 The GitHub Actions `live-loop` workflow runs automatically for pull requests and
-pushes that touch the harness, hook, calculator fixture, package metadata,
+pushes that touch the harness, hook, Motif fixtures, package metadata,
 live-loop scripts, tests, container image, or workflow files.
 Documentation-only changes outside those paths do not trigger it. The workflow
 can still be started manually with `workflow_dispatch`.
@@ -43,6 +45,7 @@ Docker:
 ```bash
 docker build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
 docker run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+docker run --rm motif-tap-live-loop scripts/live-loop-work-order-demo.sh
 ```
 
 Podman:
@@ -50,6 +53,7 @@ Podman:
 ```bash
 podman build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
 podman run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+podman run --rm motif-tap-live-loop scripts/live-loop-work-order-demo.sh
 ```
 
 The `--rm` form is good for a quick pass/fail run. To inspect artifacts after
@@ -58,9 +62,13 @@ the container exits, bind mount an artifact directory:
 ```bash
 mkdir -p live-loop-artifacts
 docker run --rm \
-  -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts \
+  -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts/calculator \
   -v "$PWD/live-loop-artifacts:/artifacts" \
   motif-tap-live-loop scripts/live-loop-demo.sh
+docker run --rm \
+  -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts/work-order \
+  -v "$PWD/live-loop-artifacts:/artifacts" \
+  motif-tap-live-loop scripts/live-loop-work-order-demo.sh
 ```
 
 Use the same pattern with `podman run --rm`.
@@ -69,30 +77,43 @@ The demo writes runtime artifacts under `MOTIF_TAP_LIVE_ARTIFACT_DIR`, which
 defaults to `/tmp/motif-tap-live-loop` inside the container:
 
 ```text
-translate.log
-motif-record.log
-normalize.log
-xvfb.log
-openbox.log
-clicks.env
-recordings/calculator_multiply/
-  meta.json
-  latest-state.json
-  widgets.jsonl
-  xnee-human.txt
-  events.jsonl
-  xnee.log
-hook-smoke/
-  latest-state.json
-  widgets.jsonl
-  inspect-state.txt
+calculator/
+  translate.log
+  motif-record.log
+  normalize.log
   xvfb.log
   openbox.log
-  calculator.log
-replay/
-  pytest.log
-  xvfb-replay.log
-  openbox-replay.log
+  clicks.env
+  recordings/calculator_multiply/
+    meta.json
+    latest-state.json
+    widgets.jsonl
+    xnee-human.txt
+    events.jsonl
+    xnee.log
+  replay/
+    pytest.log
+    xvfb-replay.log
+    openbox-replay.log
+work-order/
+  translate.log
+  motif-record.log
+  normalize.log
+  translation-report.md
+  customer-clicks.env
+  details-clicks.env
+  recordings/work_order_submit/
+    meta.json
+    latest-state.json
+    widgets.jsonl
+    xnee-human.txt
+    events.jsonl
+    xnee.log
+  replay/
+    pytest.log
+    xvfb-replay.log
+    openbox-replay.log
+    xdotool.log
 ```
 
 Generated replay diagnostics from `MotifApp(keep_artifacts=True)` are written to

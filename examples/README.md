@@ -36,3 +36,23 @@ make -C examples/motif_calc
 
 The live-loop container includes the Motif and X11 development packages needed
 to build it.
+
+## Motif work-order fixture
+
+`examples/motif_work_order/` contains a small real Motif work-order desk used by
+the second live-loop demo. It exercises a more representative workflow than the
+calculator: typed customer and quantity fields, a rush toggle, an `XmNotebook`
+with Customer and Details tabs, service selection, and a File menu action that
+writes `/tmp/motif-work-order/result.txt`.
+
+Build it with:
+
+```bash
+make -C examples/motif_work_order
+```
+
+Run the full record/translate/replay proof with:
+
+```bash
+docker run --rm motif-tap-live-loop scripts/live-loop-work-order-demo.sh
+```

@@ -1,7 +1,7 @@
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 CC ?= cc
 
-.PHONY: test lint format format-check check doctor install-dev build-hook build-calculator clean
+.PHONY: test lint format format-check check doctor install-dev build-hook build-calculator build-work-order clean
 
 install-dev:
 	$(PYTHON) -m pip install -e '.[dev]'
@@ -83,7 +83,11 @@ build-hook:
 build-calculator:
 	$(MAKE) -C examples/motif_calc
 
+build-work-order:
+	$(MAKE) -C examples/motif_work_order
+
 clean:
 	rm -rf build dist *.egg-info src/*.egg-info .pytest_cache
 	$(MAKE) -C c clean
 	$(MAKE) -C examples/motif_calc clean
+	$(MAKE) -C examples/motif_work_order clean

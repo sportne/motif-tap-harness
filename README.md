@@ -23,8 +23,10 @@ currently includes:
 - Xnee normalization and translation commands,
 - unit tests for the translator and widget matching logic,
 - a small Motif calculator fixture,
-- a containerized live-loop demo that records, translates, replays, and asserts
-  `7 * 6 = 42`.
+- a small Motif work-order fixture with text entry, toggles, tabs, and menu
+  submission,
+- containerized live-loop demos that record, translate, replay, and assert both
+  calculator and work-order workflows.
 
 ## Quick Start
 
@@ -70,13 +72,17 @@ motif-translate recordings/open_valid_file \
   --app ./my_motif_app
 ```
 
-## Live-Loop Demo
+## Live-Loop Demos
 
-The live-loop demo runs a real Motif calculator under Xvfb in a container.
+The live-loop demos run real Motif applications under Xvfb in a container. The
+calculator demo covers a compact button workflow; the work-order demo covers
+text entry, toggle state, `XmNotebook` tab navigation, and submission through a
+real menu item.
 
 ```bash
 docker build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
 docker run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+docker run --rm motif-tap-live-loop scripts/live-loop-work-order-demo.sh
 ```
 
 Podman works with the same Dockerfile:
@@ -84,12 +90,13 @@ Podman works with the same Dockerfile:
 ```bash
 podman build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
 podman run --rm motif-tap-live-loop scripts/live-loop-demo.sh
+podman run --rm motif-tap-live-loop scripts/live-loop-work-order-demo.sh
 ```
 
 See [`docs/ci.md`](docs/ci.md) for artifact preservation, troubleshooting, and
 CI guidance. The `live-loop` GitHub Actions workflow runs automatically for
-changes to harness, hook, calculator fixture, package metadata, script,
-container, test, and workflow files, and can also be run manually.
+changes to harness, hook, Motif fixtures, package metadata, script, container,
+test, and workflow files, and can also be run manually.
 
 ## Documentation
 

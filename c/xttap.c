@@ -422,7 +422,9 @@ static void tap_dump_state(void) {
 
 static void tap_note_widget(Widget w) {
     if (!w) return;
+    Widget root = tap_root_of(w);
     tap_remember_root(w);
+    if (!root || !XtIsRealized(root)) return;
     tap_dump_state();
 }
 
@@ -532,7 +534,6 @@ void XtManageChild(Widget child) {
         return;
     }
     real_fn(child);
-    if (child) tap_install_hooks_for_display(XtDisplay(child));
     tap_note_widget(child);
 }
 

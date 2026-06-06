@@ -25,6 +25,8 @@ c/xttap-self-test
 c/*.o
 c/*.a
 c/*.so
+examples/motif_calc/motif-calc
+examples/motif_work_order/motif-work-order
 
 # Local Motif Tap recording and replay artifacts
 /recordings/

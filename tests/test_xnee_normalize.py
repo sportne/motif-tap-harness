@@ -76,3 +76,28 @@ def test_normalize_xtest_keycodes_from_cnee_all_events():
 
     assert [event.phase for event in events] == ["press", "release", "press", "release", "press"]
     assert [event.key for event in events] == ["7", "7", "asterisk", "asterisk", "Return"]
+
+
+def test_normalize_xtest_letter_space_and_function_keycodes():
+    events = normalize_xnee_human_lines(
+        [
+            "Event= not defined  Number=677,2,0,0,0,38,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { state=1 } }",
+            "Event= not defined  Number=687,3,0,0,0,38,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { state=1 } }",
+            "Event= not defined  Number=677,2,0,0,0,65,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { state=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,65,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { state=0 } }",
+            "Event= not defined  Number=677,2,0,0,0,46,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { state=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,46,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { state=0 } }",
+            "Event= not defined  Number=677,2,0,0,0,75,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { state=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,75,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { state=0 } }",
+        ]
+    )
+
+    assert [event.key for event in events] == ["A", "A", "space", "space", "l", "l", "F9", "F9"]

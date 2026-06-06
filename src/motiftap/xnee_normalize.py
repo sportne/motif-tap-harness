@@ -77,9 +77,37 @@ _KEYCODE_NAMES = {
     21: "equal",
     22: "BackSpace",
     23: "Tab",
+    24: "q",
+    25: "w",
+    26: "e",
+    27: "r",
+    28: "t",
+    29: "y",
+    30: "u",
+    31: "i",
+    32: "o",
+    33: "p",
     36: "Return",
+    38: "a",
+    39: "s",
+    40: "d",
+    41: "f",
+    42: "g",
+    43: "h",
+    44: "j",
+    45: "k",
+    46: "l",
     50: "Shift_L",
+    52: "z",
+    53: "x",
+    54: "c",
+    55: "v",
+    56: "b",
+    57: "n",
+    58: "m",
     62: "Shift_R",
+    65: "space",
+    75: "F9",
 }
 
 _SHIFTED_KEYCODE_NAMES = {
@@ -127,7 +155,10 @@ def _xnee_key_name(keycode: int, state: int, pressed_keys: dict[int, str]) -> st
         return _SHIFTED_KEYCODE_NAMES[keycode]
     if keycode in pressed_keys:
         return pressed_keys[keycode]
-    return _KEYCODE_NAMES.get(keycode)
+    key = _KEYCODE_NAMES.get(keycode)
+    if state & 1 and key and len(key) == 1 and key.isalpha():
+        return key.upper()
+    return key
 
 
 def normalize_xnee_human_lines(lines: Iterable[str]) -> list[RawEvent]:

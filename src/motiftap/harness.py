@@ -187,7 +187,7 @@ class MotifApp:
                 return str(window)
         return None
 
-    def _focus_top_window(self) -> None:
+    def _focus_top_window(self, *, click_to_focus: bool = True) -> None:
         try:
             top_window = self._top_window()
         except Exception:
@@ -202,7 +202,8 @@ class MotifApp:
             self._xdotool("windowfocus", "--sync", top_window)
         except XdotoolError:
             pass
-        self._click_at("--window", top_window, 1, 1, button=1)
+        if click_to_focus:
+            self._click_at("--window", top_window, 1, 1, button=1)
 
     def _click_at(self, *move_args: object, button: int = 1) -> None:
         self._xdotool("mousemove", *move_args)
@@ -254,11 +255,11 @@ class MotifApp:
         self._click_at(x, y, button=button)
 
     def press(self, key: str) -> None:
-        self._focus_top_window()
+        self._focus_top_window(click_to_focus=False)
         self._xdotool("key", key)
 
     def type_text(self, text: str, *, delay_ms: int = 5) -> None:
-        self._focus_top_window()
+        self._focus_top_window(click_to_focus=False)
         self._xdotool("type", "--delay", delay_ms, text)
 
     def wait_for_idle(self, seconds: float = 0.2) -> None:

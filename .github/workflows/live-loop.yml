@@ -7,6 +7,7 @@ on:
       - 'c/**'
       - 'containers/live-loop/**'
       - 'examples/motif_calc/**'
+      - 'examples/motif_work_order/**'
       - 'pyproject.toml'
       - 'scripts/live-loop-*.sh'
       - 'src/motiftap/**'
@@ -17,6 +18,7 @@ on:
       - 'c/**'
       - 'containers/live-loop/**'
       - 'examples/motif_calc/**'
+      - 'examples/motif_work_order/**'
       - 'pyproject.toml'
       - 'scripts/live-loop-*.sh'
       - 'src/motiftap/**'
@@ -35,13 +37,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build live-loop image
         run: docker build -f containers/live-loop/Dockerfile -t motif-tap-live-loop .
-      - name: Run live-loop demo
+      - name: Run live-loop demos
         run: |
-          mkdir -p live-loop-artifacts
+          mkdir -p live-loop-artifacts/calculator live-loop-artifacts/work-order
           docker run --rm \
-            -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts \
+            -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts/calculator \
             -v "$PWD/live-loop-artifacts:/artifacts" \
             motif-tap-live-loop bash scripts/live-loop-demo.sh
+          docker run --rm \
+            -e MOTIF_TAP_LIVE_ARTIFACT_DIR=/artifacts/work-order \
+            -v "$PWD/live-loop-artifacts:/artifacts" \
+            motif-tap-live-loop bash scripts/live-loop-work-order-demo.sh
       - name: Upload live-loop artifacts
         uses: actions/upload-artifact@v4
         if: always()
