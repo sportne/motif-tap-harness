@@ -11,11 +11,12 @@ cleanup() {
   if [[ $status -ne 0 ]]; then
     shopt -s nullglob
     for dir in /tmp/motif-test-*; do
-      cp -a "$dir" "${REPLAY_DIR}/" 2>/dev/null || true
+      cp -R "$dir" "${REPLAY_DIR}/" 2>/dev/null || true
     done
     shopt -u nullglob
+    chmod -R u+rwX,go+rX "${REPLAY_DIR}" 2>/dev/null || true
     echo "Live-loop demo failed. Artifacts are in ${BASE_DIR}" >&2
-    for log in translate.log pytest.log xvfb-replay.log openbox-replay.log; do
+    for log in translate.log pytest.log xvfb-replay.log openbox-replay.log xdotool.log; do
       if [[ -s "${BASE_DIR}/${log}" || -s "${REPLAY_DIR}/${log}" ]]; then
         echo "===== ${log} =====" >&2
         tail -100 "${BASE_DIR}/${log}" "${REPLAY_DIR}/${log}" 2>/dev/null >&2 || true
