@@ -52,3 +52,27 @@ def test_normalize_numeric_key_names():
 
     assert [event.phase for event in events] == ["press", "release"]
     assert [event.key for event in events] == ["1", "2"]
+
+
+def test_normalize_xtest_keycodes_from_cnee_all_events():
+    events = normalize_xnee_human_lines(
+        [
+            "Event= not defined  Number=677,2,0,0,0,16,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=0 sameScreen=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,16,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=0 sameScreen=0 } }",
+            "Event= not defined  Number=677,2,0,0,0,50,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=0 sameScreen=0 } }",
+            "Event= not defined  Number=677,2,0,0,0,17,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=1 sameScreen=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,17,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=1 sameScreen=0 } }",
+            "Event= not defined  Number=687,3,0,0,0,50,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyRelease Number=3 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=0 sameScreen=0 } }",
+            "Event= not defined  Number=677,2,0,0,0,36,0,0,5,Virtual core XTEST keyboard",
+            "Event=KeyPress Number=2 { { root=0 event=0 child=0 rootX=640 rootY=512 eventX=0 eventY=0 state=0 sameScreen=0 } }",
+        ]
+    )
+
+    assert [event.phase for event in events] == ["press", "release", "press", "release", "press"]
+    assert [event.key for event in events] == ["7", "7", "asterisk", "asterisk", "Return"]

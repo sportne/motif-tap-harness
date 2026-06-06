@@ -135,6 +135,12 @@ class MotifApp:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        if log_path := os.environ.get("MOTIF_TAP_XDOTOOL_LOG"):
+            with Path(log_path).open("a", encoding="utf-8") as log:
+                log.write(
+                    f"command={command!r} returncode={result.returncode} "
+                    f"stdout={result.stdout!r} stderr={result.stderr!r}\n"
+                )
         if result.returncode != 0:
             self.capture_diagnostics("xdotool_failed")
             raise XdotoolError(
@@ -192,14 +198,17 @@ class MotifApp:
             self._xdotool("windowactivate", "--sync", top_window)
         except XdotoolError:
             pass
+        try:
+            self._xdotool("windowfocus", "--sync", top_window)
+        except XdotoolError:
+            pass
         self._click_at("--window", top_window, 1, 1, button=1)
 
     def _click_at(self, *move_args: object, button: int = 1) -> None:
         self._xdotool("mousemove", *move_args)
         time.sleep(0.05)
-        self._xdotool("mousedown", button)
-        time.sleep(0.05)
-        self._xdotool("mouseup", button)
+        self._xdotool("click", button)
+        time.sleep(0.2)
 
     def wait_for_widget(self, path: str, timeout: float | None = None) -> dict[str, Any]:
         deadline = time.monotonic() + (timeout or self.timeout)
@@ -225,14 +234,9 @@ class MotifApp:
 
     def click(self, path: str, *, button: int = 1) -> None:
         widget = self.wait_for_widget(path)
-        self._focus_top_window()
 
         x = int(widget["width"]) // 2
         y = int(widget["height"]) // 2
-        if widget.get("window"):
-            self._click_at("--window", widget["window"], x, y, button=button)
-            return
-
         self._click_at(
             int(widget["root_x"]) + x,
             int(widget["root_y"]) + y,
@@ -241,11 +245,6 @@ class MotifApp:
 
     def click_relative(self, path: str, x: int, y: int, *, button: int = 1) -> None:
         widget = self.wait_for_widget(path)
-        self._focus_top_window()
-
-        if widget.get("window"):
-            self._click_at("--window", widget["window"], x, y, button=button)
-            return
 
         root_x = int(widget["root_x"]) + int(x)
         root_y = int(widget["root_y"]) + int(y)

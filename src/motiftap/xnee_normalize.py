@@ -52,6 +52,53 @@ _KEY_PATTERNS = [
     ),
 ]
 
+_XTEST_KEYCODE_PATTERN = re.compile(
+    r"Event=\s*not defined\s+Number=\d+,(?P<number>[23]),\d+,\d+,\d+,"
+    r"(?P<keycode>\d+),.*?(?:XTEST keyboard|Virtual core keyboard)",
+    re.IGNORECASE,
+)
+
+_KEY_EVENT_PATTERN = re.compile(r"Event=(?P<phase>KeyPress|KeyRelease)\b", re.IGNORECASE)
+_STATE_PATTERN = re.compile(r"\bstate=(?P<state>\d+)\b")
+
+_KEYCODE_NAMES = {
+    9: "Escape",
+    10: "1",
+    11: "2",
+    12: "3",
+    13: "4",
+    14: "5",
+    15: "6",
+    16: "7",
+    17: "8",
+    18: "9",
+    19: "0",
+    20: "minus",
+    21: "equal",
+    22: "BackSpace",
+    23: "Tab",
+    36: "Return",
+    50: "Shift_L",
+    62: "Shift_R",
+}
+
+_SHIFTED_KEYCODE_NAMES = {
+    10: "exclam",
+    11: "at",
+    12: "numbersign",
+    13: "dollar",
+    14: "percent",
+    15: "asciicircum",
+    16: "ampersand",
+    17: "asterisk",
+    18: "parenleft",
+    19: "parenright",
+    20: "underscore",
+    21: "plus",
+}
+
+_IGNORED_XTEST_KEYS = {"Shift_L", "Shift_R"}
+
 
 def _extract_time(line: str, fallback: float) -> float:
     for pattern in _TIME_PATTERNS:
@@ -68,6 +115,21 @@ def _normal_phase(phase: str) -> str:
     return "press"
 
 
+def _state_value(line: str) -> int:
+    match = _STATE_PATTERN.search(line)
+    if not match:
+        return 0
+    return int(match.group("state"))
+
+
+def _xnee_key_name(keycode: int, state: int, pressed_keys: dict[int, str]) -> str | None:
+    if state & 1 and keycode in _SHIFTED_KEYCODE_NAMES:
+        return _SHIFTED_KEYCODE_NAMES[keycode]
+    if keycode in pressed_keys:
+        return pressed_keys[keycode]
+    return _KEYCODE_NAMES.get(keycode)
+
+
 def normalize_xnee_human_lines(lines: Iterable[str]) -> list[RawEvent]:
     """Normalize a cnee human-printout stream to RawEvent objects.
 
@@ -78,6 +140,8 @@ def normalize_xnee_human_lines(lines: Iterable[str]) -> list[RawEvent]:
 
     events: list[RawEvent] = []
     fallback_t = 0.0
+    pending_xnee_key: tuple[float, int, str] | None = None
+    pressed_xnee_keys: dict[int, str] = {}
 
     for line in lines:
         text = line.strip()
@@ -86,6 +150,28 @@ def normalize_xnee_human_lines(lines: Iterable[str]) -> list[RawEvent]:
 
         t = _extract_time(text, fallback_t)
         fallback_t = max(fallback_t + 0.001, t + 0.001)
+
+        xnee_key_match = _XTEST_KEYCODE_PATTERN.search(text)
+        if xnee_key_match:
+            phase = "press" if xnee_key_match.group("number") == "2" else "release"
+            pending_xnee_key = (t, int(xnee_key_match.group("keycode")), phase)
+            continue
+
+        key_event_match = _KEY_EVENT_PATTERN.search(text)
+        if pending_xnee_key and key_event_match:
+            key_t, keycode, expected_phase = pending_xnee_key
+            phase = _normal_phase(key_event_match.group("phase"))
+            pending_xnee_key = None
+            if phase == expected_phase:
+                key = _xnee_key_name(keycode, _state_value(text), pressed_xnee_keys)
+                if key is not None:
+                    if phase == "press":
+                        pressed_xnee_keys[keycode] = key
+                    else:
+                        pressed_xnee_keys.pop(keycode, None)
+                    if key not in _IGNORED_XTEST_KEYS:
+                        events.append(RawEvent(t=key_t, kind="key", phase=phase, key=key))
+                    continue
 
         matched = False
         for pattern in _BUTTON_PATTERNS:

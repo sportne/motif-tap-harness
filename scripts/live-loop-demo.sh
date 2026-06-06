@@ -9,6 +9,11 @@ GUI_TEST="${ROOT_DIR}/tests/gui/test_calculator_multiply.py"
 cleanup() {
   local status=$?
   if [[ $status -ne 0 ]]; then
+    shopt -s nullglob
+    for dir in /tmp/motif-test-*; do
+      cp -a "$dir" "${REPLAY_DIR}/" 2>/dev/null || true
+    done
+    shopt -u nullglob
     echo "Live-loop demo failed. Artifacts are in ${BASE_DIR}" >&2
     for log in translate.log pytest.log xvfb-replay.log openbox-replay.log; do
       if [[ -s "${BASE_DIR}/${log}" || -s "${REPLAY_DIR}/${log}" ]]; then
@@ -53,7 +58,8 @@ sleep 1
 
 rm -f /tmp/motif-calc/result.txt
 export MOTIF_TAP_SO="${ROOT_DIR}/c/libxttap.so"
-export TMPDIR="${REPLAY_DIR}"
+export MOTIF_TAP_XDOTOOL_LOG="${REPLAY_DIR}/xdotool.log"
+export TMPDIR="/tmp"
 
 pytest "${GUI_TEST}" -q | tee "${REPLAY_DIR}/pytest.log"
 

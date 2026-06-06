@@ -34,9 +34,40 @@ if "from pathlib import Path" not in text:
 assertion = "        assert Path('/tmp/motif-calc/result.txt').read_text(encoding='utf-8').strip() == '42'"
 if assertion not in text:
     marker = "        # assert Path('/tmp/output.dat').exists()\n"
-    text = text.replace(marker, marker + assertion + "\n")
+    wait_for_result = (
+        "        app.wait_until(\n"
+        "            'calculator result is 42',\n"
+        "            lambda: Path('/tmp/motif-calc/result.txt').exists()\n"
+        "            and Path('/tmp/motif-calc/result.txt').read_text(encoding='utf-8').strip() == '42',\n"
+        "        )\n"
+    )
+    text = text.replace(marker, marker + wait_for_result + assertion + "\n")
 
 text = text.replace("]) as app:", "], keep_artifacts=True) as app:")
+text = text.replace(
+    "        app.wait_for_idle()\n",
+    "        app.wait_for_idle()\n"
+    "        app.wait_for_widget('motif-calc.calculatorForm.keypad.digit7')\n",
+)
+text = text.replace(
+    "        app.wait_for_widget('motif-calc.calculatorForm.keypad.digit7')\n",
+    "        app.wait_for_widget('motif-calc.calculatorForm.keypad.digit7')\n"
+    "        app.wait_until(\n"
+    "            'calculator layout settled',\n"
+    "            lambda: int(app.widget('motif-calc.calculatorForm.keypad.digit7').get('root_y', 0)) > 20,\n"
+    "        )\n"
+    "        app.wait_for_idle(1.0)\n",
+)
+for widget_path, x, y in [
+    ("motif-calc.calculatorForm.keypad.digit7", 9, 12),
+    ("motif-calc.calculatorForm.keypad.multiplyButton", 9, 12),
+    ("motif-calc.calculatorForm.keypad.digit6", 9, 12),
+    ("motif-calc.calculatorForm.keypad.equalsButton", 10, 12),
+]:
+    text = text.replace(
+        f"app.click({widget_path!r}, button=1)",
+        f"app.click_relative({widget_path!r}, {x}, {y}, button=1)",
+    )
 
 path.write_text(text, encoding="utf-8")
 PY
@@ -51,8 +82,24 @@ if ! grep -q '/tmp/motif-calc/result.txt' "${OUTPUT_TEST}"; then
   echo "Generated test is missing the calculator result assertion." >&2
   exit 1
 fi
+if ! grep -q "calculator result is 42" "${OUTPUT_TEST}"; then
+  echo "Generated test is missing calculator result synchronization." >&2
+  exit 1
+fi
 if ! grep -q 'keep_artifacts=True' "${OUTPUT_TEST}"; then
   echo "Generated test does not keep replay diagnostics on failure." >&2
+  exit 1
+fi
+if ! grep -Eq "app.wait_for_widget\\(['\"]motif-calc\\.calculatorForm\\.keypad\\.digit7['\"]\\)" "${OUTPUT_TEST}"; then
+  echo "Generated test is missing calculator readiness synchronization." >&2
+  exit 1
+fi
+if ! grep -q "calculator layout settled" "${OUTPUT_TEST}"; then
+  echo "Generated test is missing calculator layout synchronization." >&2
+  exit 1
+fi
+if ! grep -q "app.click_relative" "${OUTPUT_TEST}"; then
+  echo "Generated test is missing recorded relative click positions." >&2
   exit 1
 fi
 

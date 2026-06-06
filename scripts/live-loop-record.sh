@@ -181,12 +181,16 @@ sleep 1
 if [[ -n "${APP_WINDOW:-}" ]]; then
   xdotool windowactivate --sync "${APP_WINDOW}" || true
 fi
-for key in 7 asterisk 6 Return; do
+for point in DIGIT7 MULTIPLY DIGIT6 EQUALS; do
   if ! kill -0 "$record_pid" 2>/dev/null; then
     echo "motif-record exited before scripted input completed." >&2
     exit 1
   fi
-  xdotool key "$key"
+  x_var="${point}_X"
+  y_var="${point}_Y"
+  xdotool mousemove "${!x_var}" "${!y_var}"
+  sleep 0.05
+  xdotool click 1
   sleep 0.2
 done
 

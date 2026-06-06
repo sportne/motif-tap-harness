@@ -111,6 +111,49 @@ def test_input_methods_capture_diagnostics_on_xdotool_failure(monkeypatch):
     app.__exit__(None, None, None)
 
 
+def test_keyboard_input_focuses_top_window(monkeypatch):
+    app = MotifApp(["/bin/true"])
+    app.state_file.write_text(
+        __import__("json").dumps(
+            {
+                "type": "snapshot",
+                "t": 1.0,
+                "widgets": [
+                    {
+                        "path": "app",
+                        "class": "DemoApp",
+                        "window": "0x123",
+                        "root_x": 0,
+                        "root_y": 0,
+                        "width": 100,
+                        "height": 100,
+                        "managed": False,
+                        "sensitive": True,
+                        "realized": True,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    commands = []
+
+    def fake_run(command, **kwargs):
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    app.type_text("abc")
+    app.press("Return")
+
+    assert ["xdotool", "windowfocus", "--sync", "0x123"] in commands
+    assert ["xdotool", "type", "--delay", "5", "abc"] in commands
+    assert ["xdotool", "key", "Return"] in commands
+
+    app.__exit__(None, None, None)
+
+
 def test_wait_until_returns_truthy_value():
     app = MotifApp(["/bin/true"], timeout=0.1)
     result = app.wait_until("value", lambda: "ready")
