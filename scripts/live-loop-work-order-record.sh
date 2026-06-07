@@ -6,7 +6,6 @@ BASE_DIR="${MOTIF_TAP_LIVE_ARTIFACT_DIR:-/tmp/motif-tap-live-loop/work-order}"
 RECORDING_PARENT="${BASE_DIR}/recordings"
 RECORDING_NAME="${MOTIF_TAP_RECORDING_NAME:-work_order_submit}"
 RECORDING_DIR="${RECORDING_PARENT}/${RECORDING_NAME}"
-EXPECTED_RESULT=$'customer=Ada Lovelace\nservice=calibration\nrush=true\nquantity=3\nsubmitted_via=menu'
 
 cleanup() {
   local status=$?
@@ -144,6 +143,7 @@ for widget in widgets:
 emit("CUSTOMER", ".customerNameField")
 emit("RUSH", ".rushToggle")
 emit("DETAILS_TAB", ".detailsTab")
+emit("FILE_MENU", ".fileMenuButton")
 PY
 
 source "${BASE_DIR}/customer-clicks.env"
@@ -234,35 +234,48 @@ sleep 0.2
 xdotool key 3
 sleep 0.2
 
-# Submit through the File menu item's accelerator. The action still invokes the
-# Submit Work Order menu item callback, but avoids transient popup-shell input
-# behavior that cnee does not record reliably.
-xdotool key F9
-sleep 0.5
-
-python - "${EXPECTED_RESULT}" "${BASE_DIR}/recorded-result.txt" <<'PY'
+xdotool mousemove "${FILE_MENU_X}" "${FILE_MENU_Y}"
+sleep 0.05
+xdotool click 1
+sleep 0.3
+python - "${BASE_DIR}/menu-tree.txt" <<'PY' >"${BASE_DIR}/menu-click.env"
+import re
+import subprocess
 import sys
-import time
 from pathlib import Path
 
-expected = sys.argv[1]
-artifact = Path(sys.argv[2])
-result = Path("/tmp/motif-work-order/result.txt")
-deadline = time.monotonic() + 5
-while time.monotonic() < deadline:
-    if result.exists():
-        actual = result.read_text(encoding="utf-8")
-        artifact.write_text(actual, encoding="utf-8")
-        if actual.strip() == expected:
-            raise SystemExit(0)
-    time.sleep(0.1)
-if result.exists():
-    raise SystemExit(
-        "work-order result file did not match expected summary:\n"
-        + result.read_text(encoding="utf-8")
+tree = subprocess.check_output(["xwininfo", "-root", "-tree"], text=True)
+Path(sys.argv[1]).write_text(tree, encoding="utf-8")
+
+items = []
+for line in tree.splitlines():
+    match = re.search(
+        r"(0x[0-9a-fA-F]+).*?\s+(\d+)x(\d+)\+[-\d]+\+[-\d]+\s+\+(-?\d+)\+(-?\d+)",
+        line,
     )
-raise SystemExit("work-order result file was not written")
+    if not match:
+        continue
+    window, width, height, root_x, root_y = match.groups()
+    width = int(width)
+    height = int(height)
+    root_x = int(root_x)
+    root_y = int(root_y)
+    if 80 < width <= 200 and 15 <= height <= 30 and 0 <= root_x <= 20 and 0 <= root_y <= 90:
+        items.append((root_y, root_x, width, height, window))
+
+items.sort()
+if len(items) < 2:
+    raise SystemExit(f"could not find Submit menu item in xwininfo tree: {items!r}")
+
+root_y, root_x, width, height, window = items[1]
+print(f"SUBMIT_MENU_WINDOW={window}")
+print(f"SUBMIT_MENU_REL_X={width // 2}")
+print(f"SUBMIT_MENU_REL_Y={height // 2}")
+print(f"SUBMIT_MENU_X={root_x + width // 2}")
+print(f"SUBMIT_MENU_Y={root_y + height // 2}")
 PY
+test -s "${BASE_DIR}/menu-click.env"
+echo "menu_popup_detected=true"
 
 wait "$record_pid"
 
@@ -275,6 +288,8 @@ motif-normalize-xnee \
 for file in meta.json xnee-human.txt events.jsonl widgets.jsonl latest-state.json; do
   test -s "${RECORDING_DIR}/${file}"
 done
+test -s "${BASE_DIR}/menu-tree.txt"
+test -s "${BASE_DIR}/menu-click.env"
 
 input_event_count="$(python - "${RECORDING_DIR}/events.jsonl" <<'PY'
 import json

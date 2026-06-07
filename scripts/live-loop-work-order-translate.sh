@@ -107,14 +107,37 @@ text = re.sub(
     count=1,
     flags=re.MULTILINE,
 )
-if "app.press('F9')" not in text and 'app.press("F9")' not in text:
-    text = re.sub(
-        r"^(        app\.type_text\(['\"]3['\"]\).*)$",
-        "\\1\n        app.press('F9')  # HIGH: work-order menu accelerator",
-        text,
-        count=1,
-        flags=re.MULTILINE,
-    )
+menu_click = (
+    "app.click('motif-work-order.workOrderMainWindow.menuBar.fileMenuButton', button=1)"
+)
+menu_submit = (
+    f"        {menu_click}\n"
+    "        file_menu = app.widget('motif-work-order.workOrderMainWindow.menuBar.fileMenuButton')\n"
+    "        app.click_root(\n"
+    "            int(file_menu['root_x']) + int(file_menu['width']) // 2 + 50,\n"
+    "            int(file_menu['root_y']) + int(file_menu['height']) // 2 + 44,\n"
+    "            button=1,\n"
+    "        )  # HIGH: work-order submit menu item mouse click\n"
+)
+if "work-order submit menu item mouse click" not in text:
+    if menu_click in text:
+        text = re.sub(
+            rf"^        {re.escape(menu_click)}.*$",
+            lambda match: menu_submit.rstrip()
+            if "work-order submit menu item mouse click" not in match.group(0)
+            else match.group(0),
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
+    else:
+        text = re.sub(
+            r"^(        app\.type_text\(['\"]3['\"]\).*)$",
+            lambda match: match.group(0) + "\n" + menu_submit.rstrip(),
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
 
 assertion = (
     "        assert Path('/tmp/motif-work-order/result.txt').read_text(encoding='utf-8') == "
@@ -153,8 +176,8 @@ if ! grep -Eq "app\\.type_text\\([\"']3[\"']\\)" "${OUTPUT_TEST}"; then
   echo "Generated work-order test is missing quantity text entry." >&2
   exit 1
 fi
-if ! grep -Eq "app\\.press\\([\"']F9[\"']\\)" "${OUTPUT_TEST}"; then
-  echo "Generated work-order test is missing menu accelerator activation." >&2
+if ! grep -q "work-order submit menu item mouse click" "${OUTPUT_TEST}"; then
+  echo "Generated work-order test is missing menu item mouse activation." >&2
   exit 1
 fi
 if ! grep -q "/tmp/motif-work-order/result.txt" "${OUTPUT_TEST}"; then

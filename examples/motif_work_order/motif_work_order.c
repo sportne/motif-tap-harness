@@ -9,8 +9,6 @@
 #include <Xm/ToggleB.h>
 #include <Xm/Xm.h>
 
-#include <X11/Intrinsic.h>
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +27,6 @@ typedef struct {
     Widget calibration_toggle;
     char service[SERVICE_MAX];
 } WorkOrderState;
-
-static Widget submit_menu_item;
 
 typedef struct {
     Widget notebook;
@@ -123,29 +119,6 @@ static void submit_cb(Widget widget, XtPointer client_data, XtPointer call_data)
     write_result((WorkOrderState *)client_data, "menu");
 }
 
-static void submit_action(
-    Widget widget,
-    XEvent *event,
-    String *params,
-    Cardinal *num_params
-) {
-    (void)widget;
-    (void)event;
-    (void)params;
-    (void)num_params;
-    if (submit_menu_item) {
-        XtCallCallbacks(submit_menu_item, XmNactivateCallback, NULL);
-    }
-}
-
-static void install_submit_translation(Widget widget) {
-    static XtTranslations translations = NULL;
-    if (!translations) {
-        translations = XtParseTranslationTable("<Key>F9: submit-work-order()");
-    }
-    XtOverrideTranslations(widget, translations);
-}
-
 static void reset_cb(Widget widget, XtPointer client_data, XtPointer call_data) {
     (void)widget;
     (void)call_data;
@@ -219,20 +192,8 @@ static Widget make_menu_bar(Widget parent, WorkOrderState *state) {
 
     Widget reset_item = make_button(file_menu, "resetMenuItem", "Reset");
     Widget submit_item = make_button(file_menu, "submitMenuItem", "Submit Work Order");
-    XmString submit_accelerator = make_string("F9");
-    submit_menu_item = submit_item;
     XtVaSetValues(reset_item, XmNmnemonic, 'R', NULL);
-    XtVaSetValues(
-        submit_item,
-        XmNmnemonic,
-        'S',
-        XmNaccelerator,
-        "<Key>F9",
-        XmNacceleratorText,
-        submit_accelerator,
-        NULL
-    );
-    XmStringFree(submit_accelerator);
+    XtVaSetValues(submit_item, XmNmnemonic, 'S', NULL);
     XtAddCallback(reset_item, XmNactivateCallback, reset_cb, state);
     XtAddCallback(submit_item, XmNactivateCallback, submit_cb, state);
     XtManageChild(menu_bar);
@@ -466,7 +427,6 @@ static Widget make_notebook(Widget parent, WorkOrderState *state) {
 
 int main(int argc, char **argv) {
     XtAppContext app;
-    XtActionsRec actions[] = {{"submit-work-order", submit_action}};
     Widget shell = XtVaAppInitialize(
         &app,
         "WorkOrderDesk",
@@ -485,7 +445,6 @@ int main(int argc, char **argv) {
         XmPOINTER,
         NULL
     );
-    XtAppAddActions(app, actions, XtNumber(actions));
 
     WorkOrderState state;
     memset(&state, 0, sizeof(state));
@@ -500,11 +459,6 @@ int main(int argc, char **argv) {
     Widget menu_bar = make_menu_bar(main_window, &state);
     Widget notebook = make_notebook(main_window, &state);
     XmMainWindowSetAreas(main_window, menu_bar, NULL, NULL, NULL, notebook);
-    install_submit_translation(shell);
-    install_submit_translation(main_window);
-    install_submit_translation(notebook);
-    install_submit_translation(state.customer_field);
-    install_submit_translation(state.quantity_field);
 
     XtRealizeWidget(shell);
     reset_state(&state);
