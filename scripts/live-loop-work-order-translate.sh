@@ -88,9 +88,9 @@ text = re.sub(
     r"['\"]motif-work-order\.workOrderMainWindow\.workOrderNotebook\.detailsPage['\"],"
     r" [^)]*button=1\).*$",
     "        app.click(\n"
-    "            'motif-work-order.workOrderMainWindow.workOrderNotebook.customerPage.customerNameField',\n"
+    "            'motif-work-order.workOrderMainWindow.workOrderNotebook.detailsPage.serviceTypeBox.calibrationToggle',\n"
     "            button=1,\n"
-    "        )  # HIGH: work-order customer text field",
+    "        )  # HIGH: work-order calibration toggle",
     text,
     count=1,
     flags=re.MULTILINE,
@@ -100,13 +100,40 @@ text = re.sub(
     r"['\"]motif-work-order\.workOrderMainWindow\.workOrderNotebook\.detailsPage\.quantityLabel['\"],"
     r" button=1\).*$",
     "        app.click(\n"
-    "            'motif-work-order.workOrderMainWindow.workOrderNotebook.customerPage.rushToggle',\n"
+    "            'motif-work-order.workOrderMainWindow.workOrderNotebook.detailsPage.quantityField',\n"
     "            button=1,\n"
-    "        )  # HIGH: work-order rush toggle",
+    "        )  # HIGH: work-order quantity text field",
     text,
     count=1,
     flags=re.MULTILINE,
 )
+if "work-order details page is visible" in text:
+    before_details, after_details = text.split("work-order details page is visible", 1)
+    after_details = re.sub(
+        r"^        app\.click\("
+        r"['\"]motif-work-order\.workOrderMainWindow\.workOrderNotebook\.customerPage\.customerNameField['\"],"
+        r" button=1\).*$",
+        "        app.click(\n"
+        "            'motif-work-order.workOrderMainWindow.workOrderNotebook.detailsPage.serviceTypeBox.calibrationToggle',\n"
+        "            button=1,\n"
+        "        )  # HIGH: work-order calibration toggle",
+        after_details,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    after_details = re.sub(
+        r"^        app\.click_relative\("
+        r"['\"]motif-work-order\.workOrderMainWindow\.workOrderNotebook\.customerPage['\"],"
+        r" [^)]*button=1\).*$",
+        "        app.click(\n"
+        "            'motif-work-order.workOrderMainWindow.workOrderNotebook.detailsPage.quantityField',\n"
+        "            button=1,\n"
+        "        )  # HIGH: work-order quantity text field",
+        after_details,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    text = before_details + "work-order details page is visible" + after_details
 menu_click = (
     "app.click('motif-work-order.workOrderMainWindow.menuBar.fileMenuButton', button=1)"
 )
@@ -174,6 +201,14 @@ if ! grep -Eq "app\\.type_text\\([\"']Ada Lovelace[\"']\\)" "${OUTPUT_TEST}"; th
 fi
 if ! grep -Eq "app\\.type_text\\([\"']3[\"']\\)" "${OUTPUT_TEST}"; then
   echo "Generated work-order test is missing quantity text entry." >&2
+  exit 1
+fi
+if ! grep -q "detailsPage.serviceTypeBox.calibrationToggle" "${OUTPUT_TEST}"; then
+  echo "Generated work-order test is missing the details calibration toggle." >&2
+  exit 1
+fi
+if ! grep -q "detailsPage.quantityField" "${OUTPUT_TEST}"; then
+  echo "Generated work-order test is missing the details quantity field." >&2
   exit 1
 fi
 if ! grep -q "work-order submit menu item mouse click" "${OUTPUT_TEST}"; then
